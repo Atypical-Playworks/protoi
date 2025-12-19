@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini Innovation Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              // Neumorphism Light Mode Colors
+              neu: {
+                bg: 'var(--neu-bg)',
+                surface: 'var(--neu-surface)',
+                text: 'var(--neu-text)',
+                textDim: 'var(--neu-text-dim)',
+                border: 'var(--neu-border)',
+                shadowLight: 'var(--neu-shadow-light)',
+                shadowDark: 'var(--neu-shadow-dark)',
+                primary: 'var(--neu-primary)',
+                primaryDim: 'var(--neu-primary-dim)',
+                secondary: 'var(--neu-secondary)',
+                accent: 'var(--neu-accent)',
+              }
+            },
+            boxShadow: {
+              'neu-convex': 'var(--neu-shadow-convex)',
+              'neu-concave': 'var(--neu-shadow-concave)',
+              'neu-flat': 'var(--neu-shadow-flat)',
+              'neu-pressed': 'var(--neu-shadow-pressed)',
+            },
+            backgroundImage: {
+              'cyber-gradient': 'linear-gradient(to bottom right, #050505, #000000)',
+              'glow-conic': 'conic-gradient(from 180deg at 50% 50%, #2a8af6 0deg, #a853ba 180deg, #e92a67 360deg)',
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              slideUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            },
+            backdropBlur: {
+              xs: '2px',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      /* ============================================
+         NEUMORPHISM CSS VARIABLES - DAY & NIGHT
+         ============================================ */
+      
+      :root {
+        /* Light Mode (Day) - Soft gray palette */
+        --neu-bg: #e0e5ec;
+        --neu-surface: #e0e5ec;
+        --neu-text: #2d3436;
+        --neu-text-dim: #636e72;
+        --neu-border: rgba(255, 255, 255, 0.5);
+        --neu-shadow-light: #ffffff;
+        --neu-shadow-dark: #a3b1c6;
+        --neu-primary: #0891b2;
+        --neu-primary-dim: rgba(8, 145, 178, 0.15);
+        --neu-secondary: #7c3aed;
+        --neu-accent: #e11d48;
+        
+        /* Neumorphic shadows - Light mode */
+        --neu-shadow-convex: 8px 8px 16px #a3b1c6, -8px -8px 16px #ffffff;
+        --neu-shadow-concave: inset 4px 4px 8px #a3b1c6, inset -4px -4px 8px #ffffff;
+        --neu-shadow-flat: 4px 4px 10px #a3b1c6, -4px -4px 10px #ffffff;
+        --neu-shadow-pressed: inset 2px 2px 5px #a3b1c6, inset -2px -2px 5px #ffffff;
+      }
+      
+      .dark {
+        /* Dark Mode (Night) - Deep blue-gray palette */
+        --neu-bg: #1a1a2e;
+        --neu-surface: #1a1a2e;
+        --neu-text: #edf2f7;
+        --neu-text-dim: #a0aec0;
+        --neu-border: rgba(255, 255, 255, 0.05);
+        --neu-shadow-light: #242444;
+        --neu-shadow-dark: #101020;
+        --neu-primary: #22d3ee;
+        --neu-primary-dim: rgba(34, 211, 238, 0.15);
+        --neu-secondary: #a78bfa;
+        --neu-accent: #f43f5e;
+        
+        /* Neumorphic shadows - Dark mode */
+        --neu-shadow-convex: 8px 8px 16px #101020, -8px -8px 16px #242444;
+        --neu-shadow-concave: inset 4px 4px 8px #101020, inset -4px -4px 8px #242444;
+        --neu-shadow-flat: 4px 4px 10px #101020, -4px -4px 10px #242444;
+        --neu-shadow-pressed: inset 2px 2px 5px #101020, inset -2px -2px 5px #242444;
+      }
+      
+      /* Base body styles with smooth transitions */
+      body {
+        background-color: var(--neu-bg);
+        color: var(--neu-text);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color 0.4s ease, color 0.4s ease;
+      }
+      
+      /* Custom Premium Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--neu-bg);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--neu-shadow-dark);
+        border-radius: 4px;
+        box-shadow: var(--neu-shadow-flat);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--neu-text-dim);
+      }
+      
+      /* ============================================
+         NEUMORPHISM UTILITY CLASSES
+         ============================================ */
+      
+      /* Card - Convex (raised) appearance */
+      .neu-card {
+        background: var(--neu-surface);
+        border-radius: 20px;
+        box-shadow: var(--neu-shadow-convex);
+        border: 1px solid var(--neu-border);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      
+      .neu-card:hover {
+        box-shadow: 12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light);
+        transform: translateY(-2px);
+      }
+      
+      /* Flat panel for subtle elements */
+      .neu-flat {
+        background: var(--neu-surface);
+        border-radius: 16px;
+        box-shadow: var(--neu-shadow-flat);
+        border: 1px solid var(--neu-border);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      
+      /* Concave (pressed) for inputs and inset elements */
+      .neu-concave {
+        background: var(--neu-surface);
+        border-radius: 12px;
+        box-shadow: var(--neu-shadow-concave);
+        border: 1px solid var(--neu-border);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      
+      /* Button base styles */
+      .neu-button {
+        background: var(--neu-surface);
+        border-radius: 12px;
+        box-shadow: var(--neu-shadow-convex);
+        border: 1px solid var(--neu-border);
+        color: var(--neu-text);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: pointer;
+      }
+      
+      .neu-button:hover {
+        box-shadow: 10px 10px 20px var(--neu-shadow-dark), -10px -10px 20px var(--neu-shadow-light);
+      }
+      
+      .neu-button:active {
+        box-shadow: var(--neu-shadow-pressed);
+        transform: scale(0.98);
+      }
+      
+      /* Primary button variant */
+      .neu-button-primary {
+        background: linear-gradient(145deg, var(--neu-primary), color-mix(in srgb, var(--neu-primary) 80%, black));
+        color: white;
+        box-shadow: 4px 4px 10px var(--neu-shadow-dark), -2px -2px 6px var(--neu-shadow-light);
+      }
+      
+      .neu-button-primary:hover {
+        box-shadow: 6px 6px 14px var(--neu-shadow-dark), -3px -3px 8px var(--neu-shadow-light);
+        filter: brightness(1.05);
+      }
+      
+      /* Input fields */
+      .neu-input {
+        background: var(--neu-surface);
+        border-radius: 12px;
+        box-shadow: var(--neu-shadow-concave);
+        border: 1px solid var(--neu-border);
+        color: var(--neu-text);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      
+      .neu-input:focus {
+        outline: none;
+        border-color: var(--neu-primary);
+        box-shadow: var(--neu-shadow-concave), 0 0 0 3px var(--neu-primary-dim);
+      }
+      
+      .neu-input::placeholder {
+        color: var(--neu-text-dim);
+      }
+      
+      /* Toggle/Pill containers */
+      .neu-pill {
+        background: var(--neu-surface);
+        border-radius: 50px;
+        box-shadow: var(--neu-shadow-concave);
+        border: 1px solid var(--neu-border);
+        padding: 4px;
+        transition: all 0.3s ease;
+      }
+      
+      /* Icon containers */
+      .neu-icon {
+        background: var(--neu-surface);
+        border-radius: 12px;
+        box-shadow: var(--neu-shadow-flat);
+        border: 1px solid var(--neu-border);
+        transition: all 0.3s ease;
+      }
+      
+      .neu-icon:hover {
+        box-shadow: var(--neu-shadow-convex);
+      }
+      
+      /* Circular elements */
+      .neu-circle {
+        background: var(--neu-surface);
+        border-radius: 50%;
+        box-shadow: var(--neu-shadow-convex);
+        border: 1px solid var(--neu-border);
+      }
+
+      /* Glass panel - kept for compatibility with existing code */
+      .glass-panel {
+        background: var(--neu-surface);
+        border-radius: 20px;
+        box-shadow: var(--neu-shadow-convex);
+        border: 1px solid var(--neu-border);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      
+      .glass-panel:hover {
+        box-shadow: 12px 12px 24px var(--neu-shadow-dark), -12px -12px 24px var(--neu-shadow-light);
+      }
+      
+      .glass-input {
+        background: var(--neu-surface);
+        border-radius: 12px;
+        box-shadow: var(--neu-shadow-concave);
+        border: 1px solid var(--neu-border);
+        color: var(--neu-text);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      
+      .glass-input:focus {
+        outline: none;
+        border-color: var(--neu-primary);
+        box-shadow: var(--neu-shadow-concave), 0 0 0 3px var(--neu-primary-dim);
+      }
+
+      /* Markdown specific styling for legibility */
+      .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+        letter-spacing: -0.02em;
+        color: var(--neu-text);
+      }
+      
+      /* Theme toggle animation */
+      .theme-toggle-icon {
+        transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      }
+      
+      .theme-toggle-icon.rotate {
+        transform: rotate(360deg);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "papaparse": "https://esm.sh/papaparse@^5.5.3",
+    "react-markdown": "https://esm.sh/react-markdown@9.0.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
