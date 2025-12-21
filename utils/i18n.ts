@@ -14,10 +14,15 @@ export const translations = {
       "🚀 Deploy-Ready Prompts"
     ],
     downloadTemplate: "Template.csv",
-    loadDataset: "Load Dataset",
-    downloadDataset: "Download Dataset",
+    addContext: "Add Context",
+    downloadDataset: "Download Source",
     datasetLabel: "DATASET:",
     projectsLabel: "PROJECTS",
+    extraContextLabel: "EXTRA CONTEXT:",
+    extraContextItems: "items",
+    clearExtraContext: "Clear extra context",
+    contextAdded: "Context added",
+    contextCleared: "Extra context cleared",
     
     // Data Error Modal
     dataErrorModal: {
@@ -121,7 +126,98 @@ export const translations = {
     waiting: "Ready when you are...",
     processing: "Thinking...",
     terminalOutput: "Output",
-    complete: "Done ✓"
+    complete: "Done ✓",
+    
+    // Dashboard - New KPIs & Modals
+    dashboard: {
+      // Notifications
+      datasetLoaded: "Dataset loaded: {count} projects",
+      projectsLoadedCached: "{count} projects loaded and cached",
+      urlFetchFailed: "URL Fetch failed. Using local data.",
+      contextAddedCsv: "{count} rows added as context",
+      contextAddedDoc: "Document added: {name}",
+      contextAddedJson: "JSON added: {keys} keys",
+      errorReadingFile: "Error reading file",
+      contextCleared: "Extra context cleared",
+      dataResetOriginal: "Data reset to Original Dataset.",
+      dataCleared: "Data cleared. Using samples.",
+      datasetDownloaded: "Dataset downloaded successfully",
+      errorDownloading: "Error downloading dataset",
+      
+      // UI Labels
+      reloadResetData: "Reload or Reset Data",
+      docs: "docs",
+      clearContext: "Clear context",
+      downloadCsvOriginal: "Download original CSV",
+      downloadCsv: "Download CSV",
+      importYourData: "Import your scraped data, CSVs or documents",
+      yourData: "Your Data",
+      
+      // Modal
+      projects: "projects",
+      noProjectsCategory: "No projects in this category",
+      escToClose: "ESC or click outside to close",
+      projectsWithDemo: "Projects with Demo",
+      projectsWithGithub: "Projects with GitHub", 
+      projectsWithVideo: "Projects with Video",
+      eliteProjects: "Elite Projects",
+      clickToSeeList: "Click to see list",
+      clickBarToSee: "Click a bar to see projects",
+      
+      // KPI Cards
+      deploymentRate: "Deployment Rate",
+      deploymentRateDesc: "Projects with Demo",
+      githubRate: "GitHub Rate",
+      githubRateDesc: "With Repository",
+      videoRate: "Video Rate",
+      videoRateDesc: "With Demo Video",
+      eliteProjectsDesc: "Demo + GitHub + Video",
+      avgEffort: "Avg Effort Score",
+      avgEffortDesc: "Maturity Score",
+      stackDominant: "Dominant Stack",
+      stackDominantDesc: "Most used (excl. Gemini)",
+      
+      // Charts
+      categoryBreakdown: "Category Breakdown",
+      categoryBreakdownDesc: "Inferred from description & keywords",
+      techStackChart: "Tech Stack",
+      techStackChartDesc: "Most used technologies",
+      keywordsCloud: "Trending Keywords",
+      keywordsCloudDesc: "Most frequent keywords",
+      gapOpportunities: "Gap Opportunities",
+      gapOpportunitiesDesc: "Categories with less competition",
+      projectsLower: "projects",
+      insight: "INSIGHT",
+      insightLegal: "Legal has very low competition. Real opportunity.",
+      insightAccessibility: "Accessibility is a high-impact, low-saturation niche.",
+      analyzingProjects: "Analyzing {count} projects..."
+    },
+    
+    // AI Lab extras
+    aiLab: {
+      nextStep: "Next Step",
+      noApiKey: "API key not configured. Add your VITE_GEMINI_API_KEY to .env",
+      data: "DATA",
+      build: "BUILD",
+      newQuestion: "+ New question...",
+      newThread: "New thread",
+      topTechnologies: "What are the top 5 most popular technologies?",
+      gapsOpportunities: "What gaps or opportunities exist?",
+      emergingTrends: "What are the emerging trends?",
+      innovativeIdeas: "Give me innovative ideas based on the data",
+      history: "History",
+      maximize: "Maximize",
+      readyToAnalyze: "Ready to analyze...",
+      useLeftPanel: "Use left panel",
+      followUp: "Follow up...",
+      maximized: "MAXIMIZED",
+      close: "Close",
+      messages: "messages",
+      noContentYet: "No content yet...",
+      continueConversation: "Continue conversation...",
+      langInstructionFull: "RESPOND IN ENGLISH.",
+      langInstructionShort: "Respond in English."
+    }
   },
   es: {
     // Header
@@ -135,10 +231,15 @@ export const translations = {
       "🚀 Prompts Listos para Usar"
     ],
     downloadTemplate: "Plantilla.csv",
-    loadDataset: "Cargar Dataset",
-    downloadDataset: "Descargar Dataset",
+    addContext: "Agregar Contexto",
+    downloadDataset: "Descargar Fuente",
     datasetLabel: "DATASET:",
     projectsLabel: "PROYECTOS",
+    extraContextLabel: "CONTEXTO EXTRA:",
+    extraContextItems: "items",
+    clearExtraContext: "Limpiar contexto extra",
+    contextAdded: "Contexto agregado",
+    contextCleared: "Contexto extra limpiado",
     
     // Data Error Modal
     dataErrorModal: {
@@ -242,6 +343,97 @@ export const translations = {
     waiting: "Listo cuando tú lo estés...",
     processing: "Pensando...",
     terminalOutput: "Salida",
-    complete: "Listo ✓"
+    complete: "Listo ✓",
+    
+    // Dashboard - New KPIs & Modals
+    dashboard: {
+      // Notifications
+      datasetLoaded: "Dataset cargado: {count} proyectos",
+      projectsLoadedCached: "{count} proyectos cargados y guardados",
+      urlFetchFailed: "Error cargando URL. Usando datos locales.",
+      contextAddedCsv: "{count} filas agregadas como contexto",
+      contextAddedDoc: "Documento agregado: {name}",
+      contextAddedJson: "JSON agregado: {keys} claves",
+      errorReadingFile: "Error leyendo archivo",
+      contextCleared: "Contexto extra limpiado",
+      dataResetOriginal: "Datos reseteados al Dataset Original.",
+      dataCleared: "Datos borrados. Usando ejemplos.",
+      datasetDownloaded: "Dataset descargado correctamente",
+      errorDownloading: "Error al descargar el dataset",
+      
+      // UI Labels
+      reloadResetData: "Recargar o Resetear Datos",
+      docs: "docs",
+      clearContext: "Limpiar contexto",
+      downloadCsvOriginal: "Descargar CSV original",
+      downloadCsv: "Descargar CSV",
+      importYourData: "Importa tus propios datos scrapeados, CSVs o documentos",
+      yourData: "Tus Datos",
+      
+      // Modal
+      projects: "proyectos",
+      noProjectsCategory: "No hay proyectos en esta categoría",
+      escToClose: "ESC o click afuera para cerrar",
+      projectsWithDemo: "Proyectos con Demo",
+      projectsWithGithub: "Proyectos con GitHub",
+      projectsWithVideo: "Proyectos con Video",
+      eliteProjects: "Proyectos Elite",
+      clickToSeeList: "Click para ver lista",
+      clickBarToSee: "Click en una barra para ver proyectos",
+      
+      // KPI Cards
+      deploymentRate: "Tasa de Despliegue",
+      deploymentRateDesc: "Proyectos con Demo",
+      githubRate: "Tasa de GitHub",
+      githubRateDesc: "Con Repositorio",
+      videoRate: "Tasa de Video",
+      videoRateDesc: "Con Demo Video",
+      eliteProjectsDesc: "Demo + GitHub + Video",
+      avgEffort: "Esfuerzo Promedio",
+      avgEffortDesc: "Score de Madurez",
+      stackDominant: "Stack Dominante",
+      stackDominantDesc: "Más usado (sin Gemini)",
+      
+      // Charts
+      categoryBreakdown: "Distribución por Categoría",
+      categoryBreakdownDesc: "Inferido de descripción y keywords",
+      techStackChart: "Stack Tecnológico",
+      techStackChartDesc: "Tecnologías más usadas",
+      keywordsCloud: "Tendencias",
+      keywordsCloudDesc: "Keywords más frecuentes",
+      gapOpportunities: "Oportunidades (Gaps)",
+      gapOpportunitiesDesc: "Categorías con menos competencia",
+      projectsLower: "proyectos",
+      insight: "INSIGHT",
+      insightLegal: "Legal tiene muy poca competencia. Oportunidad real.",
+      insightAccessibility: "Accesibilidad es un nicho con alto impacto y baja saturación.",
+      analyzingProjects: "Analizando {count} proyectos..."
+    },
+    
+    // AI Lab extras
+    aiLab: {
+      nextStep: "Siguiente Paso",
+      noApiKey: "API key no configurada. Agrega tu VITE_GEMINI_API_KEY en .env",
+      data: "DATOS",
+      build: "CREAR",
+      newQuestion: "+ Nueva pregunta...",
+      newThread: "Nuevo thread",
+      topTechnologies: "¿Cuáles son las 5 tecnologías más populares?",
+      gapsOpportunities: "¿Qué huecos u oportunidades existen?",
+      emergingTrends: "¿Cuáles son las tendencias emergentes?",
+      innovativeIdeas: "Dame ideas innovadoras basadas en los datos",
+      history: "Historial",
+      maximize: "Maximizar",
+      readyToAnalyze: "Listo para analizar...",
+      useLeftPanel: "Usa el panel izquierdo",
+      followUp: "Seguir...",
+      maximized: "MAXIMIZADO",
+      close: "Cerrar",
+      messages: "mensajes",
+      noContentYet: "Sin contenido aún...",
+      continueConversation: "Continuar conversación...",
+      langInstructionFull: "CRITICAL: YOU MUST RESPOND EXCLUSIVELY IN SPANISH (ESPAÑOL). EXCEPT FOR THE MASTER PROMPT WHICH MUST BE IN ENGLISH.",
+      langInstructionShort: "Responde en Español."
+    }
   }
 };

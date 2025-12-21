@@ -64,7 +64,14 @@ export const SAMPLE_DATA: Project[] = [
     description: 'Using computer vision to detect early skin cancer symptoms from smartphone photos.',
     track: 'Health',
     techStack: ['Python', 'TensorFlow', 'React Native', 'FastAPI'],
-    teamSize: 4
+    teamSize: 4,
+    hasDemo: true,
+    hasGithub: true,
+    hasVideo: false,
+    contentLength: 1500,
+    keywords: ['medical', 'skin', 'cancer', 'detection', 'vision'],
+    category: 'Health',
+    effortScore: 70
   }
 ];
 

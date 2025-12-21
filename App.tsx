@@ -9,12 +9,17 @@ import { AILab } from './components/AILab';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { LayoutDashboard, Compass, Cpu, Upload, CheckCircle, AlertCircle, X, Trash2, CloudDownload } from 'lucide-react';
+import { LayoutDashboard, Compass, Cpu, CheckCircle, AlertCircle, X, Trash2, CloudDownload, FileText, Plus } from 'lucide-react';
+
+// Supported document formats for Gemini context
+const SUPPORTED_DOC_EXTENSIONS = '.pdf,.txt,.html,.css,.md,.csv,.xml,.rtf,.js,.ts,.py,.json';
+const SUPPORTED_DOC_MIMES = 'application/pdf,text/plain,text/html,text/css,text/markdown,text/csv,application/xml,text/xml,application/rtf,text/javascript,application/javascript,text/x-python,application/json';
 
 // Inner App Component to consume Context
 const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabView>('dashboard');
   const [projects, setProjects] = useState<Project[]>(SAMPLE_DATA);
+  const [extraContext, setExtraContext] = useState<{name: string, content: string}[]>([]);
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [isDataPersisted, setIsDataPersisted] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -24,12 +29,58 @@ const AppContent: React.FC = () => {
 
   // Helper to process raw CSV rows into Project objects
   const processParsedData = (data: any[]): Project[] => {
-    return data
+    console.log('📊 Processing CSV data. Total rows:', data.length);
+    if (data.length > 0) {
+      console.log('📝 Sample raw row:', data[0]);
+      console.log('🔍 has_demo value:', data[0].has_demo, 'type:', typeof data[0].has_demo);
+    }
+    
+    const result = data
       .filter((row: any) => row && typeof row === 'object' && (row.name || row.title))
       .map((row: any, idx) => {
         const name = String(row.name || row.title || 'Untitled').trim();
         const description = String(row.description || row.subtitle || 'No description provided').trim();
         const rawTech = row.techStack || row.technologies || '';
+        const rawKeywords = row.keywords || '';
+        
+        // Parse boolean fields (CSV has "True"/"False" strings)
+        const hasDemo = String(row.has_demo || row.hasDemo || 'false').toLowerCase() === 'true';
+        const hasGithub = String(row.has_github || row.hasGithub || 'false').toLowerCase() === 'true';
+        const hasVideo = String(row.has_video || row.hasVideo || 'false').toLowerCase() === 'true';
+        const contentLength = parseInt(String(row.content_length || row.contentLength || 0)) || 0;
+        
+        // Parse keywords array
+        const keywords = rawKeywords 
+          ? String(rawKeywords).split(/[,;]/).map((s: string) => s.trim()).filter(s => s.length > 0)
+          : [];
+        
+        // Infer category from text
+        const textForCategory = `${name} ${description} ${keywords.join(' ')}`.toLowerCase();
+        let category = 'Other';
+        const categoryKeywords: Record<string, string[]> = {
+          'Health': ['medical', 'doctor', 'health', 'patient', 'diagnosis', 'triage', 'mental', 'therapy', 'hospital', 'wellness'],
+          'Education': ['tutor', 'learning', 'student', 'study', 'course', 'quiz', 'teach', 'school', 'education'],
+          'Finance': ['crypto', 'stock', 'invest', 'finance', 'budget', 'trading', 'bank', 'payment'],
+          'Accessibility': ['blind', 'deaf', 'sign language', 'disability', 'braille', 'accessible'],
+          'DevTools': ['code', 'debug', 'ide', 'terminal', 'sql', 'developer', 'api', 'github', 'programming'],
+          'Legal': ['legal', 'law', 'lawyer', 'attorney', 'court', 'rights', 'contract'],
+          'Creative': ['art', 'music', 'design', 'creative', 'image', 'video', 'photo', 'story', 'write'],
+          'Productivity': ['automation', 'workflow', 'productivity', 'task', 'schedule', 'assistant'],
+          'Social': ['social', 'community', 'chat', 'connect', 'network'],
+        };
+        for (const [cat, terms] of Object.entries(categoryKeywords)) {
+          if (terms.some(term => textForCategory.includes(term))) {
+            category = cat;
+            break;
+          }
+        }
+        
+        // Calculate effort score (0-100)
+        let effortScore = 0;
+        if (hasDemo) effortScore += 40;
+        if (hasGithub) effortScore += 30;
+        if (hasVideo) effortScore += 20;
+        if (contentLength > 2000) effortScore += 10;
         
         return {
           id: String(row.id || `csv-${idx}-${Date.now()}`),
@@ -39,31 +90,71 @@ const AppContent: React.FC = () => {
           techStack: rawTech 
             ? String(rawTech).split(/[,;]/).map((s: string) => s.trim()).filter(s => s.length > 0) 
             : [],
-          teamSize: Math.max(1, parseInt(String(row.teamSize || 1)) || 1)
+          teamSize: Math.max(1, parseInt(String(row.teamSize || 1)) || 1),
+          // New fields
+          hasDemo,
+          hasGithub,
+          hasVideo,
+          contentLength,
+          keywords,
+          githubUrl: row.github_url || row.githubUrl || undefined,
+          demoUrl: row.demo_url || row.demoUrl || undefined,
+          youtubeUrl: row.youtube_url || row.youtubeUrl || undefined,
+          category,
+          effortScore,
         };
       });
+    
+    console.log('✅ Processed projects:', result.length);
+    if (result.length > 0) {
+      console.log('📈 Sample processed project:', {
+        name: result[0].name,
+        hasDemo: result[0].hasDemo,
+        hasGithub: result[0].hasGithub,
+        hasVideo: result[0].hasVideo,
+        category: result[0].category,
+        effortScore: result[0].effortScore
+      });
+    }
+    
+    return result;
   };
+
+  // Schema version - increment when data structure changes to invalidate cache
+  const SCHEMA_VERSION = 2;
 
   // Load Data on Mount (Priority: LocalStorage > URL > Fixed CSV > Sample)
   useEffect(() => {
     const initData = async () => {
       setIsFetching(true);
 
+      // Check schema version - if outdated, clear cache
+      const cachedVersion = localStorage.getItem('gemini_hub_schema_version');
+      if (cachedVersion !== String(SCHEMA_VERSION)) {
+        console.log('Schema version changed, clearing old cache...');
+        localStorage.removeItem('gemini_hub_data');
+        localStorage.setItem('gemini_hub_schema_version', String(SCHEMA_VERSION));
+      }
+
       // 1. Try LocalStorage first (instant load)
       const savedData = localStorage.getItem('gemini_hub_data');
       if (savedData) {
         try {
           const parsed = JSON.parse(savedData);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          // Validate that data has new fields (hasDemo should exist)
+          if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].hasDemo !== 'undefined') {
             setProjects(parsed);
             setIsDataPersisted(true);
             setNotification({ 
-              message: language === 'es' ? `Dataset cargado: ${parsed.length} proyectos` : `Dataset loaded: ${parsed.length} projects`, 
+              message: t.dashboard.datasetLoaded.replace('{count}', String(parsed.length)), 
               type: 'success' 
             });
-            console.log("Loaded data from localStorage");
+            console.log("Loaded data from localStorage with new schema");
             setIsFetching(false);
             return; // Stop here if cached data exists
+          } else {
+            console.log("Cached data has old schema, fetching fresh data...");
+            localStorage.removeItem('gemini_hub_data');
           }
         } catch (e) {
           console.error("Failed to load cached data", e);
@@ -90,7 +181,7 @@ const AppContent: React.FC = () => {
                 // Save to localStorage for next time
                 localStorage.setItem('gemini_hub_data', JSON.stringify(mapped));
                 setNotification({
-                  message: language === 'es' ? `${mapped.length} proyectos cargados y guardados` : `${mapped.length} projects loaded and cached`,
+                  message: t.dashboard.projectsLoadedCached.replace('{count}', String(mapped.length)),
                   type: 'success'
                 });
                 console.log("Loaded data from URL and saved to cache");
@@ -102,7 +193,7 @@ const AppContent: React.FC = () => {
         } catch (e) {
           console.error("Fetch failed, falling back to static data", e);
           setNotification({
-            message: language === 'es' ? 'Error cargando URL. Usando datos locales.' : 'URL Fetch failed. Using local data.',
+            message: t.dashboard.urlFetchFailed,
             type: 'error'
           });
         }
@@ -146,45 +237,82 @@ const AppContent: React.FC = () => {
     }
   }, [notification]);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          try {
-            const mapped = processParsedData(results.data);
-            
-            if (mapped.length > 0) {
-              setProjects(mapped);
-              setIsDataPersisted(true);
-              localStorage.setItem('gemini_hub_data', JSON.stringify(mapped)); // Save to storage
-              setNotification({ 
-                message: language === 'es' ? `Dataset cargado y guardado: ${mapped.length} proyectos.` : `Dataset loaded and saved: ${mapped.length} projects.`, 
-                type: 'success' 
-              });
-              setActiveTab('discovery');
-            } else {
-              setNotification({ 
-                message: language === 'es' ? "No se encontraron proyectos válidos." : "No valid projects found.", 
-                type: 'error' 
-              });
-            }
-          } catch (err: any) {
-            console.error(err);
-            setNotification({ 
-              message: `Error: ${err.message}`, 
-              type: 'error' 
-            });
-          }
-        },
-        error: (error) => {
-          setNotification({ message: `Upload failed: ${error.message}`, type: 'error' });
+  // Load extra context from localStorage on mount
+  useEffect(() => {
+    const savedContext = localStorage.getItem('gemini_extra_context');
+    if (savedContext) {
+      try {
+        const parsed = JSON.parse(savedContext);
+        if (Array.isArray(parsed)) {
+          setExtraContext(parsed);
         }
-      });
+      } catch (e) {
+        console.error("Failed to load extra context", e);
+      }
     }
-    e.target.value = ''; 
+  }, []);
+
+  // Handle document upload for extra context
+  const handleContextUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const supportedExts = ['pdf', 'txt', 'html', 'css', 'md', 'csv', 'xml', 'rtf', 'js', 'ts', 'py', 'json'];
+    
+    if (!ext || !supportedExts.includes(ext)) {
+      setNotification({ 
+        message: t.dashboard.errorReadingFile + ' - PDF, TXT, MD, CSV, JSON, HTML, JS, PY...', 
+        type: 'error' 
+      });
+      e.target.value = '';
+      return;
+    }
+
+    // For PDF, we'd need a PDF parser - for now show message
+    if (ext === 'pdf') {
+      setNotification({ 
+        message: 'PDF support coming soon. Use TXT, MD, CSV or JSON.', 
+        type: 'error' 
+      });
+      e.target.value = '';
+      return;
+    }
+
+    // Read text-based files
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text && text.trim().length > 0) {
+        const newDoc = { name: file.name, content: text.trim() };
+        const newContext = [...extraContext, newDoc];
+        setExtraContext(newContext);
+        localStorage.setItem('gemini_extra_context', JSON.stringify(newContext));
+        
+        setNotification({ 
+          message: t.dashboard.contextAddedDoc.replace('{name}', file.name), 
+          type: 'success' 
+        });
+      }
+    };
+    reader.onerror = () => {
+      setNotification({ 
+        message: t.dashboard.errorReadingFile, 
+        type: 'error' 
+      });
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  // Clear extra context
+  const clearExtraContext = () => {
+    setExtraContext([]);
+    localStorage.removeItem('gemini_extra_context');
+    setNotification({ 
+      message: t.dashboard.contextCleared, 
+      type: 'success' 
+    });
   };
 
   const clearPersistedData = () => {
@@ -203,7 +331,7 @@ const AppContent: React.FC = () => {
           const mapped = processParsedData(results.data);
           setProjects(mapped);
           setNotification({ 
-            message: language === 'es' ? "Datos reseteados al Dataset Original." : "Data reset to Original Dataset.", 
+            message: t.dashboard.dataResetOriginal, 
             type: 'success' 
           });
         }
@@ -213,7 +341,7 @@ const AppContent: React.FC = () => {
       setProjects(SAMPLE_DATA);
       setIsDataPersisted(false);
       setNotification({ 
-        message: language === 'es' ? "Datos borrados. Usando ejemplos." : "Data cleared. Using samples.", 
+        message: t.dashboard.dataCleared, 
         type: 'success' 
       });
     }
@@ -242,13 +370,13 @@ const AppContent: React.FC = () => {
       URL.revokeObjectURL(blobUrl);
       
       setNotification({
-        message: language === 'es' ? 'Dataset descargado correctamente' : 'Dataset downloaded successfully',
+        message: t.dashboard.datasetDownloaded,
         type: 'success'
       });
     } catch (error) {
       console.error('Download error:', error);
       setNotification({
-        message: language === 'es' ? 'Error al descargar el dataset' : 'Error downloading dataset',
+        message: t.dashboard.errorDownloading,
         type: 'error'
       });
     }
@@ -331,18 +459,15 @@ const AppContent: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3">
             {/* Language Switcher - Brutalist */}
             <div className="flex border-2 border-basalt-700">
-              <button 
-                onClick={() => setLanguage('en')}
-                className={`px-4 py-2 font-mono font-bold text-xs transition-all ${language === 'en' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'}`}
-              >
-                EN
-              </button>
-              <button 
-                onClick={() => setLanguage('es')}
-                className={`px-4 py-2 font-mono font-bold text-xs transition-all ${language === 'es' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'}`}
-              >
-                ES
-              </button>
+              {(['en', 'es'] as const).map((lang) => (
+                <button 
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`px-4 py-2 font-mono font-bold text-xs transition-all ${language === lang ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'}`}
+                >
+                  {lang.toUpperCase()}
+                </button>
+              ))}
             </div>
 
             {/* Clear Data Button */}
@@ -350,24 +475,50 @@ const AppContent: React.FC = () => {
               <button 
                 onClick={clearPersistedData}
                 className="border-2 border-basalt-700 text-red-400 px-4 py-2 font-mono font-bold text-xs hover:border-red-400 transition-colors flex items-center gap-2"
-                title={language === 'es' ? "Recargar o Resetear Datos" : "Reload or Reset Data"}
+                title={t.dashboard.reloadResetData}
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             )}
 
+            {/* Extra Context Indicator */}
+            {extraContext.length > 0 && (
+              <div className="flex items-center gap-2 border-2 border-cyan-500/50 bg-cyan-500/10 px-3 py-2">
+                <FileText className="w-4 h-4 text-cyan-400" />
+                <span className="font-mono text-xs text-cyan-400">
+                  +{extraContext.length} {t.dashboard.docs}
+                </span>
+                <button 
+                  onClick={clearExtraContext}
+                  className="ml-1 hover:bg-red-500/20 p-1 transition-colors"
+                  title={t.dashboard.clearContext}
+                >
+                  <X className="w-3 h-3 text-red-400" />
+                </button>
+              </div>
+            )}
+
             <button 
               onClick={downloadDataset}
               className="border-2 border-basalt-700 text-gray-400 px-4 py-2 font-mono font-bold text-xs hover:border-yellow-400 hover:text-white transition-colors flex items-center gap-2 group"
+              title={t.dashboard.downloadCsvOriginal}
             >
               <CloudDownload className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
-              <span className="hidden sm:inline">{t.downloadDataset}</span>
+              <span className="hidden sm:inline">{t.dashboard.downloadCsv}</span>
             </button>
 
-            <label className="cursor-pointer group flex items-center gap-2 px-6 py-2 bg-yellow-400 text-black font-mono font-bold text-xs hover:translate-x-1 hover:-translate-y-1 transition-transform">
-              <Upload className="w-4 h-4" />
-              <span>{t.loadDataset}</span>
-              <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
+            <label 
+              className="cursor-pointer group flex items-center gap-2 px-5 py-2 bg-cyan-500 text-black font-mono font-bold text-xs hover:translate-x-1 hover:-translate-y-1 transition-transform"
+              title={t.dashboard.importYourData}
+            >
+              <Plus className="w-4 h-4" />
+              <span>{t.dashboard.yourData}</span>
+              <input 
+                type="file" 
+                accept={SUPPORTED_DOC_EXTENSIONS}
+                className="hidden" 
+                onChange={handleContextUpload} 
+              />
             </label>
           </div>
         </header>
@@ -401,7 +552,7 @@ const AppContent: React.FC = () => {
             <div className="h-full overflow-y-auto custom-scrollbar pb-6">
               {activeTab === 'dashboard' && <Dashboard projects={projects} />}
               {activeTab === 'discovery' && <Discovery projects={projects} />}
-              {activeTab === 'ai-lab' && <AILab projects={projects} />}
+              {activeTab === 'ai-lab' && <AILab projects={projects} extraContext={extraContext} />}
             </div>
           </ErrorBoundary>
         </main>
