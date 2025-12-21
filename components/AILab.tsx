@@ -414,10 +414,10 @@ ${pipeline.masterPrompt}
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-0">
       
       {/* LEFT COLUMN: CONTROLS (Build Pipeline / Scaffolding) */}
-      <aside className="lg:col-span-4 space-y-8">
+      <aside className="lg:col-span-4 flex flex-col gap-6 overflow-y-auto custom-scrollbar min-h-0">
         
         {/* Mode Switcher - Brutalist */}
         <div className="flex border-2 border-basalt-700">
@@ -692,11 +692,11 @@ ${pipeline.masterPrompt}
       </aside>
 
       {/* RIGHT COLUMN: THE "BASALT" TERMINAL */}
-      <main className="lg:col-span-8">
-        <div className="basalt-block h-full min-h-[600px] flex flex-col bg-black overflow-hidden border-2 border-basalt-800">
+      <main className="lg:col-span-8 min-h-0 flex flex-col">
+        <div className="basalt-block flex-1 flex flex-col bg-black overflow-hidden border-2 border-basalt-800 min-h-0">
           
           {/* Terminal Header */}
-          <div className="flex items-center justify-between bg-basalt-800 p-3 border-b-2 border-basalt-800">
+          <div className="flex items-center justify-between bg-basalt-800 p-3 border-b-2 border-basalt-800 flex-shrink-0">
             <div className="flex gap-2">
               <div className="w-3 h-3 bg-red-500"></div>
               <div className="w-3 h-3 bg-yellow-500"></div>
@@ -723,7 +723,7 @@ ${pipeline.masterPrompt}
           </div>
 
           {/* Terminal Content */}
-          <div className="flex-grow p-8 font-mono text-sm relative overflow-y-auto terminal-glow custom-scrollbar">
+          <div className="flex-1 min-h-0 p-6 font-mono text-sm relative overflow-y-auto terminal-glow custom-scrollbar">
             {isGenerating || (isChatLoading && mode === 'explorer') ? (
               <div className="flex flex-col items-center justify-center h-full space-y-4">
                 <Loader2 className="w-10 h-10 text-green-400 animate-spin" />
@@ -809,7 +809,7 @@ ${pipeline.masterPrompt}
 
           {/* Terminal Input - Only show in Explorer mode */}
           {mode === 'explorer' && (
-            <div className="p-4 bg-basalt-900 border-t-2 border-basalt-800 flex items-center gap-4">
+            <div className="p-4 bg-basalt-900 border-t-2 border-basalt-800 flex items-center gap-4 flex-shrink-0">
               <span className="text-yellow-400 font-mono font-bold">$</span>
               <input 
                 type="text" 

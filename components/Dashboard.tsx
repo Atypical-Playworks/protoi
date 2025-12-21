@@ -66,9 +66,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
   const totalDevs = projects.reduce((acc, curr) => acc + curr.teamSize, 0);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in pb-10">
-      {/* Stat Cards - Brutalist Basalt Blocks */}
-      <div className="basalt-block p-4">
+    <div className="h-full flex flex-col gap-6 animate-fade-in">
+      {/* Stat Cards - Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
+        {/* Stat Cards - Brutalist Basalt Blocks */}
+        <div className="basalt-block p-4">
         <span className="font-mono text-[10px] text-yellow-400 block mb-1">// PROJECTS_SYNC</span>
         <div className="flex items-center justify-between">
           <div className="text-4xl font-bold text-white font-mono tracking-tighter">{projects.length}</div>
@@ -115,11 +117,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
         </div>
         <p className="text-gray-500 text-xs font-mono uppercase tracking-widest mt-2">{t.techStack}</p>
       </div>
+      </div>
 
-      {/* Charts Section */}
+      {/* Charts Section - Scrollable */}
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
       
-      {/* Track Distribution - Pie Chart */}
-      <Card title={t.trackDist} className="col-span-1 md:col-span-2 h-[450px]">
+        {/* Track Distribution - Pie Chart */}
+        <Card title={t.trackDist} className="h-[400px]">
         <div className="w-full h-full min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
@@ -160,8 +165,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
         </div>
       </Card>
 
-      {/* Tech Stack - Bar Chart */}
-      <Card title={t.topTech} className="col-span-1 md:col-span-2 h-[450px]">
+        {/* Tech Stack - Bar Chart */}
+        <Card title={t.topTech} className="h-[400px]">
         <div className="w-full h-full min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
@@ -197,6 +202,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
           </ResponsiveContainer>
         </div>
       </Card>
+        </div>
+      </div>
     </div>
   );
 };

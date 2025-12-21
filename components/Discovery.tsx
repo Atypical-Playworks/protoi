@@ -39,9 +39,9 @@ export const Discovery: React.FC<DiscoveryProps> = ({ projects }) => {
   });
 
   return (
-    <div className="space-y-8 relative">
+    <div className="h-full flex flex-col">
       {/* Search Bar & Filters: Brutalist Style */}
-      <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-4">
+      <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-4 flex-shrink-0 mb-6">
         {/* Search Input */}
         <div className="relative flex-1 group">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-400">
@@ -75,15 +75,16 @@ export const Discovery: React.FC<DiscoveryProps> = ({ projects }) => {
       </div>
 
       {/* Results Counter */}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto flex-shrink-0 mb-4">
         <span className="text-xs font-mono text-gray-500 uppercase tracking-widest">
           // FOUND: {filtered.length} PROJECTS
         </span>
       </div>
 
-      {/* Grid - Terminal Card Style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map(project => (
+      {/* Grid - Terminal Card Style - Scrollable Area */}
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-4">
+          {filtered.map(project => (
           <div 
             key={project.id} 
             onClick={() => setSelectedProject(project)}
@@ -132,22 +133,23 @@ export const Discovery: React.FC<DiscoveryProps> = ({ projects }) => {
             </div>
           </div>
         ))}
-      </div>
-      
-      {/* No Results State */}
-      {filtered.length === 0 && (
-        <div className="text-center py-32 basalt-block">
-          <Terminal className="w-16 h-16 mx-auto mb-6 text-gray-600" />
-          <p className="font-mono text-sm tracking-wide text-gray-500 uppercase">{t.noProjects}</p>
-          <p className="font-mono text-xs text-gray-600 mt-2">// NO_MATCHING_RECORDS_FOUND</p>
-          <button 
-            onClick={() => {setSearchTerm(''); setSuperpowerFilter('all');}}
-            className="mt-6 brutal-btn text-xs"
-          >
-            {t.resetFilters}
-          </button>
         </div>
-      )}
+      
+        {/* No Results State */}
+        {filtered.length === 0 && (
+          <div className="text-center py-32 basalt-block">
+            <Terminal className="w-16 h-16 mx-auto mb-6 text-gray-600" />
+            <p className="font-mono text-sm tracking-wide text-gray-500 uppercase">{t.noProjects}</p>
+            <p className="font-mono text-xs text-gray-600 mt-2">// NO_MATCHING_RECORDS_FOUND</p>
+            <button 
+              onClick={() => {setSearchTerm(''); setSuperpowerFilter('all');}}
+              className="mt-6 brutal-btn text-xs"
+            >
+              {t.resetFilters}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* PROJECT DETAILS MODAL - Brutalist Style */}
       {selectedProject && createPortal(

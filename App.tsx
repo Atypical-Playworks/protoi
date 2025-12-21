@@ -262,7 +262,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-gray-200 font-sans relative overflow-x-hidden">
+    <div className="h-screen bg-[#0a0a0b] text-gray-200 font-sans relative overflow-hidden flex flex-col">
       
       {/* TOAST NOTIFICATION - Brutalist style */}
       {notification && (
@@ -315,10 +315,10 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      <div className="relative z-10 max-w-[1600px] mx-auto px-4 md:px-8 py-8 flex flex-col min-h-screen">
+      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4 md:px-8 py-6 flex flex-col h-full overflow-hidden">
         
         {/* BRUTALIST HEADER */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16 animate-fade-in">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6 flex-shrink-0 animate-fade-in">
           <div className="relative">
             <div className="hazard-strip w-24 mb-4"></div>
             <h1 className="brutalist-title text-white">PROTOI<span className="text-yellow-400">.</span></h1>
@@ -373,7 +373,7 @@ const AppContent: React.FC = () => {
         </header>
 
         {/* NAVIGATION: Brutalist Style */}
-        <nav className="flex gap-2 mb-12 animate-fade-in">
+        <nav className="flex gap-2 mb-6 flex-shrink-0 animate-fade-in">
           <NavButton 
             active={activeTab === 'dashboard'} 
             onClick={() => setActiveTab('dashboard')} 
@@ -396,9 +396,9 @@ const AppContent: React.FC = () => {
         </nav>
 
         {/* MAIN CONTENT AREA */}
-        <main className="flex-1 w-full animate-slide-up">
+        <main className="flex-1 min-h-0 w-full animate-slide-up overflow-hidden">
           <ErrorBoundary>
-            <div className="pb-12">
+            <div className="h-full overflow-y-auto custom-scrollbar pb-6">
               {activeTab === 'dashboard' && <Dashboard projects={projects} />}
               {activeTab === 'discovery' && <Discovery projects={projects} />}
               {activeTab === 'ai-lab' && <AILab projects={projects} />}
@@ -407,7 +407,7 @@ const AppContent: React.FC = () => {
         </main>
 
         {/* BRUTALIST FOOTER */}
-        <footer className="mt-16 pt-8 border-t border-basalt-700 flex flex-col md:flex-row justify-between items-center gap-4">
+        <footer className="mt-4 pt-4 border-t border-basalt-700 flex flex-col md:flex-row justify-between items-center gap-4 flex-shrink-0">
           <div className="flex gap-8">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
