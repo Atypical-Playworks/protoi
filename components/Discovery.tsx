@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Project } from '../types';
-import { Card } from './Card';
 import { Search, Monitor, Cpu, Terminal, Filter, X, Hash, Users, Code, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface DiscoveryProps {
   projects: Project[];
@@ -15,7 +13,6 @@ export const Discovery: React.FC<DiscoveryProps> = ({ projects }) => {
   const [superpowerFilter, setSuperpowerFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const { t } = useLanguage();
-  const { isDark } = useTheme();
 
   const SUPERPOWERS = [
     { label: t.superpowers.all, value: 'all' },
@@ -43,144 +40,185 @@ export const Discovery: React.FC<DiscoveryProps> = ({ projects }) => {
 
   return (
     <div className="space-y-8 relative">
-      {/* Search Bar & Filters: Neumorphic Style */}
+      {/* Search Bar & Filters: Brutalist Style */}
       <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-4">
+        {/* Search Input */}
         <div className="relative flex-1 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neu-textDim group-focus-within:text-neu-primary transition-colors w-5 h-5" />
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-400">
+            <Search className="w-5 h-5" />
+          </div>
           <input 
             type="text" 
             placeholder={t.searchPlaceholder}
-            className="w-full neu-input py-4 pl-12 pr-4 text-neu-text text-sm font-medium tracking-wide placeholder:text-neu-textDim/50"
+            className="w-full bg-basalt-900 border-2 border-basalt-800 py-4 pl-12 pr-4 text-white text-sm font-mono uppercase tracking-wide placeholder:text-gray-600 focus:border-yellow-400 focus:outline-none transition-colors"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         
+        {/* Filter Dropdown */}
         <div className="relative w-full md:w-72 group">
-          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-neu-textDim group-focus-within:text-neu-secondary transition-colors w-4 h-4" />
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-400">
+            <Filter className="w-4 h-4" />
+          </div>
           <select
-            className="w-full neu-input py-4 pl-10 pr-10 text-neu-text text-xs font-mono uppercase tracking-wide appearance-none cursor-pointer"
+            className="w-full bg-basalt-900 border-2 border-basalt-800 py-4 pl-10 pr-10 text-white text-xs font-mono uppercase tracking-wide appearance-none cursor-pointer focus:border-yellow-400 focus:outline-none transition-colors"
             value={superpowerFilter}
             onChange={(e) => setSuperpowerFilter(e.target.value)}
           >
             {SUPERPOWERS.map(sp => (
-              <option key={sp.value} value={sp.value} className="bg-neu-surface text-neu-text">{sp.label}</option>
+              <option key={sp.value} value={sp.value} className="bg-basalt-950 text-white">{sp.label}</option>
             ))}
           </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-neu-textDim pointer-events-none"></div>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 w-0 h-0 border-l-4 border-l-transparent border-r-4 border-r-transparent border-t-4 border-t-yellow-400 pointer-events-none"></div>
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Results Counter */}
+      <div className="max-w-4xl mx-auto">
+        <span className="text-xs font-mono text-gray-500 uppercase tracking-widest">
+          // FOUND: {filtered.length} PROJECTS
+        </span>
+      </div>
+
+      {/* Grid - Terminal Card Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map(project => (
-          <Card 
+          <div 
             key={project.id} 
             onClick={() => setSelectedProject(project)}
-            className="group flex flex-col h-full cursor-pointer hover:-translate-y-1"
+            className="group basalt-block p-0 cursor-pointer hover:-translate-y-1 transition-all duration-200 overflow-hidden"
           >
-            <div className="flex justify-between items-start mb-6">
-              <span className="neu-flat text-neu-primary text-[10px] font-mono px-3 py-1 uppercase tracking-wider font-bold">
+            {/* Card Header - Terminal Style */}
+            <div className="bg-basalt-900 border-b-2 border-basalt-800 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500"></div>
+                <div className="w-2 h-2 bg-yellow-500"></div>
+                <div className="w-2 h-2 bg-green-500"></div>
+              </div>
+              <span className="text-[10px] font-mono text-yellow-400 uppercase tracking-widest">
                 {project.track}
               </span>
-              <div className="flex -space-x-3">
-                 {[...Array(Math.min(project.teamSize, 3))].map((_, i) => (
-                   <div key={i} className="w-8 h-8 rounded-full neu-icon flex items-center justify-center text-[10px] text-neu-textDim">
-                      <UsersIcon index={i} />
-                   </div>
-                 ))}
+            </div>
+
+            {/* Card Body */}
+            <div className="p-5">
+              <h3 className="text-lg font-bold text-white mb-3 group-hover:text-yellow-400 transition-colors flex items-center gap-2 font-mono">
+                <span className="text-yellow-400">$</span>
+                {project.name}
+                <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-yellow-400" />
+              </h3>
+              <p className="text-gray-400 text-sm mb-6 line-clamp-3 leading-relaxed">
+                {project.description}
+              </p>
+
+              {/* Team Indicator */}
+              <div className="flex items-center gap-2 mb-4 text-xs font-mono text-gray-500">
+                <Users className="w-3 h-3" />
+                <span>{project.teamSize} CONTRIBUTORS</span>
+              </div>
+
+              {/* Tech Stack */}
+              <div className="flex flex-wrap gap-2 pt-4 border-t border-basalt-800">
+                {project.techStack.slice(0, 4).map(tech => (
+                  <span key={tech} className="text-[10px] text-green-400 bg-basalt-900 border border-basalt-800 px-2 py-1 font-mono uppercase">
+                    {tech}
+                  </span>
+                ))}
+                {project.techStack.length > 4 && (
+                  <span className="text-[10px] text-gray-500 px-2 py-1 font-mono">+{project.techStack.length - 4}</span>
+                )}
               </div>
             </div>
-            
-            <h3 className="text-xl font-bold text-neu-text mb-3 group-hover:text-neu-primary transition-colors flex items-center gap-2">
-              {project.name}
-              <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-neu-primary" />
-            </h3>
-            <p className="text-neu-textDim text-sm mb-6 line-clamp-3 leading-relaxed flex-1 font-light">
-              {project.description}
-            </p>
-
-            <div className="flex flex-wrap gap-2 pt-6 border-t border-neu-border">
-              {project.techStack.slice(0, 4).map(tech => (
-                <span key={tech} className="text-[10px] text-neu-text neu-flat px-2 py-1 font-mono">
-                  {tech}
-                </span>
-              ))}
-              {project.techStack.length > 4 && (
-                <span className="text-[10px] text-neu-textDim px-2 py-1">+{project.techStack.length - 4}</span>
-              )}
-            </div>
-          </Card>
+          </div>
         ))}
       </div>
       
+      {/* No Results State */}
       {filtered.length === 0 && (
-        <div className="text-center py-32 text-neu-textDim neu-concave rounded-3xl">
-          <Terminal className="w-16 h-16 mx-auto mb-6 opacity-30 text-neu-textDim" />
-          <p className="font-mono text-sm tracking-wide opacity-70">{t.noProjects}</p>
+        <div className="text-center py-32 basalt-block">
+          <Terminal className="w-16 h-16 mx-auto mb-6 text-gray-600" />
+          <p className="font-mono text-sm tracking-wide text-gray-500 uppercase">{t.noProjects}</p>
+          <p className="font-mono text-xs text-gray-600 mt-2">// NO_MATCHING_RECORDS_FOUND</p>
           <button 
             onClick={() => {setSearchTerm(''); setSuperpowerFilter('all');}}
-            className="mt-6 text-neu-primary hover:text-neu-text text-xs font-bold uppercase tracking-widest border-b border-neu-primary/30 hover:border-neu-text transition-all pb-1"
+            className="mt-6 brutal-btn text-xs"
           >
             {t.resetFilters}
           </button>
         </div>
       )}
 
-      {/* PROJECT DETAILS MODAL - Rendered via Portal with Neumorphic style */}
+      {/* PROJECT DETAILS MODAL - Brutalist Style */}
       {selectedProject && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Backdrop */}
           <div 
-            className={`absolute inset-0 ${isDark ? 'bg-[#1a1a2e]/95' : 'bg-[#e0e5ec]/95'} backdrop-blur-md animate-fade-in`}
+            className="absolute inset-0 bg-black/95 backdrop-blur-sm animate-fade-in"
             onClick={() => setSelectedProject(null)}
           />
-          <div className="relative w-full max-w-2xl neu-card overflow-hidden animate-slide-up">
-            {/* Modal Header */}
-            <div className="p-8 border-b border-neu-border flex justify-between items-start">
-              <div className="text-left">
-                <div className="flex items-center gap-4 mb-3">
-                   <h2 className="text-3xl font-bold text-neu-text tracking-tight">{selectedProject.name}</h2>
-                   <span className="neu-flat text-neu-primary text-[10px] font-mono px-2 py-0.5 uppercase tracking-widest">
-                     {selectedProject.track}
-                   </span>
+          
+          {/* Modal Container */}
+          <div className="relative w-full max-w-2xl bg-basalt-950 border-2 border-basalt-800 overflow-hidden animate-slide-up shadow-[8px_8px_0_0_rgba(250,204,21,0.3)]">
+            {/* Modal Header - Terminal Style */}
+            <div className="bg-basalt-900 border-b-2 border-basalt-800 px-6 py-4 flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-red-500"></div>
+                  <div className="w-3 h-3 bg-yellow-500"></div>
+                  <div className="w-3 h-3 bg-green-500"></div>
                 </div>
-                <div className="flex items-center gap-3 text-neu-textDim text-xs font-mono">
-                  <Hash className="w-3 h-3 text-neu-border" />
-                  <span className="opacity-50">ID: {selectedProject.id}</span>
-                </div>
+                <span className="text-xs font-mono text-gray-500 uppercase tracking-widest">// PROJECT_DETAILS</span>
               </div>
               <button 
                 onClick={() => setSelectedProject(null)}
-                className="group neu-button p-2"
+                className="w-8 h-8 border-2 border-basalt-800 hover:border-yellow-400 flex items-center justify-center transition-colors"
               >
-                <X className="w-6 h-6 text-neu-textDim group-hover:text-neu-text transition-colors" />
+                <X className="w-4 h-4 text-gray-400 hover:text-yellow-400" />
               </button>
             </div>
 
+            {/* Project Title Section */}
+            <div className="p-6 border-b-2 border-basalt-800 bg-basalt-900/50">
+              <div className="flex items-center gap-4 mb-2">
+                <span className="text-yellow-400 font-mono text-2xl">$</span>
+                <h2 className="text-2xl font-bold text-white font-mono tracking-tight">{selectedProject.name}</h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] font-mono text-yellow-400 bg-yellow-400/10 border border-yellow-400/30 px-2 py-1 uppercase tracking-widest">
+                  {selectedProject.track}
+                </span>
+                <span className="text-xs font-mono text-gray-500">
+                  <Hash className="w-3 h-3 inline mr-1" />
+                  ID: {selectedProject.id}
+                </span>
+              </div>
+            </div>
+
             {/* Modal Body */}
-            <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar text-left">
+            <div className="p-6 space-y-6 max-h-[50vh] overflow-y-auto custom-scrollbar text-left">
               
               {/* Description */}
               <div>
-                <h3 className="text-xs font-bold text-neu-textDim mb-4 flex items-center gap-2 uppercase tracking-[0.2em]">
+                <h3 className="text-xs font-bold text-yellow-400 mb-3 flex items-center gap-2 uppercase tracking-widest font-mono">
                   <Terminal className="w-3 h-3" />
                   {t.modal.description}
                 </h3>
-                <p className="text-neu-text leading-loose font-light text-base border-l-2 border-neu-primary/30 pl-6">
+                <p className="text-gray-300 leading-relaxed text-sm border-l-2 border-yellow-400 pl-4 bg-basalt-900/50 py-3">
                   {selectedProject.description}
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Tech Stack */}
                 <div>
-                   <h3 className="text-xs font-bold text-neu-textDim mb-4 flex items-center gap-2 uppercase tracking-[0.2em]">
+                  <h3 className="text-xs font-bold text-yellow-400 mb-3 flex items-center gap-2 uppercase tracking-widest font-mono">
                     <Code className="w-3 h-3" />
                     {t.modal.tech}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedProject.techStack.map((tech, i) => (
-                      <span key={i} className="text-xs neu-flat text-neu-text px-3 py-1.5 font-mono hover:shadow-neu-convex transition-shadow cursor-default">
+                      <span key={i} className="text-xs text-green-400 bg-basalt-900 border border-basalt-800 px-3 py-1.5 font-mono uppercase">
                         {tech}
                       </span>
                     ))}
@@ -189,14 +227,14 @@ export const Discovery: React.FC<DiscoveryProps> = ({ projects }) => {
 
                 {/* Team Info */}
                 <div>
-                   <h3 className="text-xs font-bold text-neu-textDim mb-4 flex items-center gap-2 uppercase tracking-[0.2em]">
+                  <h3 className="text-xs font-bold text-yellow-400 mb-3 flex items-center gap-2 uppercase tracking-widest font-mono">
                     <Users className="w-3 h-3" />
                     {t.modal.team}
                   </h3>
-                  <div className="flex items-center gap-5 p-4 neu-concave">
-                    <div className="text-4xl font-light text-neu-text">{selectedProject.teamSize}</div>
-                    <div className="text-[10px] uppercase tracking-wider text-neu-textDim leading-relaxed">
-                      Active<br/>Contributors
+                  <div className="flex items-center gap-4 p-4 bg-basalt-900 border border-basalt-800">
+                    <div className="text-4xl font-mono font-bold text-white">{selectedProject.teamSize}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-gray-500 font-mono leading-relaxed">
+                      ACTIVE<br/>CONTRIBUTORS
                     </div>
                   </div>
                 </div>
@@ -204,10 +242,11 @@ export const Discovery: React.FC<DiscoveryProps> = ({ projects }) => {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-neu-border flex justify-end">
+            <div className="p-4 border-t-2 border-basalt-800 bg-basalt-900 flex justify-between items-center">
+              <span className="text-xs font-mono text-gray-600">// END_OF_RECORD</span>
               <button 
                 onClick={() => setSelectedProject(null)}
-                className="px-8 py-3 neu-button-primary font-bold text-xs uppercase tracking-widest"
+                className="brutal-btn text-xs"
               >
                 {t.modal.close}
               </button>

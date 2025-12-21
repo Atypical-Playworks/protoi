@@ -8,8 +8,8 @@ import { Discovery } from './components/Discovery';
 import { AILab } from './components/AILab';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
-import { ThemeProvider, useTheme } from './contexts/ThemeContext';
-import { LayoutDashboard, Compass, Cpu, Upload, Download, CheckCircle, AlertCircle, X, Sparkles, Trash2, CloudDownload, Sun, Moon } from 'lucide-react';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { LayoutDashboard, Compass, Cpu, Upload, CheckCircle, AlertCircle, X, Trash2, CloudDownload } from 'lucide-react';
 
 // Inner App Component to consume Context
 const AppContent: React.FC = () => {
@@ -21,7 +21,6 @@ const AppContent: React.FC = () => {
   const [showDataErrorModal, setShowDataErrorModal] = useState(false);
   
   const { language, setLanguage, t } = useLanguage();
-  const { theme, toggleTheme, isDark } = useTheme();
 
   // Helper to process raw CSV rows into Project objects
   const processParsedData = (data: any[]): Project[] => {
@@ -263,46 +262,36 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neu-bg text-neu-text font-sans selection:bg-neu-primary/20 relative overflow-x-hidden transition-colors duration-400">
+    <div className="min-h-screen bg-[#0a0a0b] text-gray-200 font-sans relative overflow-x-hidden">
       
-      {/* NEUMORPHISM BACKGROUND */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Subtle noise grain - reduced in light mode */}
-        <div className={`absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] ${isDark ? 'opacity-[0.03]' : 'opacity-[0.02]'}`}></div>
-        
-        {/* Sophisticated ambient glows - adjusted for both modes */}
-        <div className={`absolute top-[-20%] left-[20%] w-[600px] h-[600px] rounded-full blur-[120px] transition-colors duration-500 ${isDark ? 'bg-neu-primary/5' : 'bg-neu-primary/10'}`}></div>
-        <div className={`absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[100px] transition-colors duration-500 ${isDark ? 'bg-neu-secondary/5' : 'bg-neu-secondary/8'}`}></div>
-      </div>
-
-      {/* TOAST NOTIFICATION - Neumorphic style */}
+      {/* TOAST NOTIFICATION - Brutalist style */}
       {notification && (
-        <div className={`fixed top-8 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-4 rounded-2xl neu-card animate-slide-up ${
+        <div className={`fixed top-8 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4 px-6 py-4 bg-basalt-900 border-2 animate-slide-up ${
           notification.type === 'success' 
-            ? 'border-emerald-500/30' 
-            : 'border-red-500/30'
+            ? 'border-green-500' 
+            : 'border-red-500'
         }`}>
           {notification.type === 'success' 
-            ? <CheckCircle className="w-5 h-5 text-emerald-500" /> 
+            ? <CheckCircle className="w-5 h-5 text-green-500" /> 
             : <AlertCircle className="w-5 h-5 text-red-500" />}
-          <span className="font-medium text-sm text-neu-text">{notification.message}</span>
-          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-neu-primary/10 p-1 rounded-full transition-colors">
-            <X className="w-4 h-4 text-neu-textDim" />
+          <span className="font-mono text-sm text-white">{notification.message}</span>
+          <button onClick={() => setNotification(null)} className="ml-2 hover:bg-white/10 p-1 transition-colors">
+            <X className="w-4 h-4 text-gray-400" />
           </button>
         </div>
       )}
 
       {/* DATA ERROR MODAL */}
       {showDataErrorModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="neu-card max-w-md w-full p-8 space-y-6 animate-slide-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="basalt-block max-w-md w-full p-8 space-y-6 animate-slide-up">
             <div className="flex items-start gap-4">
-              <div className="neu-icon flex-shrink-0">
-                <AlertCircle className="w-6 h-6 text-amber-500" />
+              <div className="bg-basalt-800 border border-basalt-700 p-3 flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-yellow-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-neu-text mb-2">{t.dataErrorModal.title}</h3>
-                <p className="text-neu-textDim text-sm leading-relaxed">
+                <h3 className="text-xl font-bold text-white mb-2">{t.dataErrorModal.title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed font-mono">
                   {t.dataErrorModal.message}
                 </p>
               </div>
@@ -311,13 +300,13 @@ const AppContent: React.FC = () => {
             <div className="space-y-3">
               <button
                 onClick={() => handleDismissDataError(false)}
-                className="w-full neu-button-primary py-3 rounded-xl font-semibold text-sm"
+                className="w-full bg-yellow-400 text-black py-3 font-mono font-bold text-sm uppercase hover:translate-x-1 hover:-translate-y-1 transition-transform"
               >
                 {t.dataErrorModal.understood}
               </button>
               <button
                 onClick={() => handleDismissDataError(true)}
-                className="w-full neu-button py-3 rounded-xl font-medium text-sm text-neu-textDim hover:text-neu-text"
+                className="w-full border-2 border-basalt-700 py-3 font-mono font-medium text-sm text-gray-400 hover:border-yellow-400 hover:text-white transition-colors"
               >
                 {t.dataErrorModal.dontShowAgain}
               </button>
@@ -326,125 +315,65 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8 flex flex-col min-h-screen">
+      <div className="relative z-10 max-w-[1600px] mx-auto px-4 md:px-8 py-8 flex flex-col min-h-screen">
         
-        {/* HEADER AREA */}
-        <header className="flex flex-col mb-10 animate-fade-in">
+        {/* BRUTALIST HEADER */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16 animate-fade-in">
+          <div className="relative">
+            <div className="hazard-strip w-24 mb-4"></div>
+            <h1 className="brutalist-title text-white">PROTOI<span className="text-yellow-400">.</span></h1>
+            <p className="font-mono text-xs uppercase tracking-[0.4em] text-gray-500 mt-2 flex items-center gap-3">
+              {t.appSubtitle}
+              {isFetching && <span className="text-green-400 animate-pulse">● SYNCING...</span>}
+            </p>
+          </div>
           
-          {/* Top Bar: Logo & Actions */}
-          <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-6">
-            <div className="flex items-center gap-4">
-              <div className="relative group">
-                <div className={`absolute inset-0 blur-lg transition-opacity duration-500 ${isDark ? 'bg-neu-primary opacity-20 group-hover:opacity-40' : 'bg-neu-primary opacity-10 group-hover:opacity-25'}`}></div>
-                <div className="relative w-12 h-12 neu-icon flex items-center justify-center">
-                  <Sparkles className="text-neu-primary w-6 h-6" />
-                </div>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-neu-text tracking-tight leading-none">{t.appName}</h1>
-                <p className="text-[10px] text-neu-textDim font-mono tracking-[0.2em] uppercase mt-1 opacity-60 flex items-center gap-2">
-                  {t.appSubtitle}
-                  {isFetching && <span className="text-neu-primary animate-pulse">● SYNCING...</span>}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Theme Toggle - Neumorphic */}
-              <button
-                onClick={toggleTheme}
-                className="neu-button w-10 h-10 flex items-center justify-center group"
-                title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              >
-                {isDark ? (
-                  <Sun className="w-5 h-5 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
-                ) : (
-                  <Moon className="w-5 h-5 text-indigo-500 group-hover:-rotate-12 transition-transform duration-300" />
-                )}
-              </button>
-
-              {/* Language Pill - Neumorphic */}
-              <div className="neu-pill flex items-center">
-                <button 
-                  onClick={() => setLanguage('en')}
-                  className={`px-4 py-1.5 text-[10px] font-bold rounded-full transition-all duration-300 ${language === 'en' ? 'bg-neu-primary text-white shadow-lg' : 'text-neu-textDim hover:text-neu-text'}`}
-                >
-                  EN
-                </button>
-                <button 
-                  onClick={() => setLanguage('es')}
-                  className={`px-4 py-1.5 text-[10px] font-bold rounded-full transition-all duration-300 ${language === 'es' ? 'bg-neu-primary text-white shadow-lg' : 'text-neu-textDim hover:text-neu-text'}`}
-                >
-                  ES
-                </button>
-              </div>
-
-              <div className="h-8 w-px bg-neu-border"></div>
-
-              {/* Clear Data Button */}
-              {isDataPersisted && (
-                <button 
-                  onClick={clearPersistedData}
-                  className="neu-button text-xs font-medium text-red-500 hover:text-red-400 transition-colors flex items-center gap-2 px-3 py-2"
-                  title={language === 'es' ? "Recargar o Resetear Datos" : "Reload or Reset Data"}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Language Switcher - Brutalist */}
+            <div className="flex border-2 border-basalt-700">
               <button 
-                onClick={downloadDataset}
-                className="neu-button text-xs font-medium text-neu-textDim hover:text-neu-primary transition-colors flex items-center gap-2 px-3 py-2 group"
+                onClick={() => setLanguage('en')}
+                className={`px-4 py-2 font-mono font-bold text-xs transition-all ${language === 'en' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'}`}
               >
-                <CloudDownload className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
-                <span className="hidden sm:inline">{t.downloadDataset}</span>
+                EN
               </button>
-
-              <label className="cursor-pointer group flex items-center gap-2 px-5 py-2.5 neu-button-primary rounded-xl hover:scale-105 active:scale-95 duration-300">
-                <Upload className="w-4 h-4" />
-                <span className="text-xs font-bold">{t.loadDataset}</span>
-                <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
-              </label>
+              <button 
+                onClick={() => setLanguage('es')}
+                className={`px-4 py-2 font-mono font-bold text-xs transition-all ${language === 'es' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'}`}
+              >
+                ES
+              </button>
             </div>
+
+            {/* Clear Data Button */}
+            {isDataPersisted && (
+              <button 
+                onClick={clearPersistedData}
+                className="border-2 border-basalt-700 text-red-400 px-4 py-2 font-mono font-bold text-xs hover:border-red-400 transition-colors flex items-center gap-2"
+                title={language === 'es' ? "Recargar o Resetear Datos" : "Reload or Reset Data"}
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+
+            <button 
+              onClick={downloadDataset}
+              className="border-2 border-basalt-700 text-gray-400 px-4 py-2 font-mono font-bold text-xs hover:border-yellow-400 hover:text-white transition-colors flex items-center gap-2 group"
+            >
+              <CloudDownload className="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" />
+              <span className="hidden sm:inline">{t.downloadDataset}</span>
+            </button>
+
+            <label className="cursor-pointer group flex items-center gap-2 px-6 py-2 bg-yellow-400 text-black font-mono font-bold text-xs hover:translate-x-1 hover:-translate-y-1 transition-transform">
+              <Upload className="w-4 h-4" />
+              <span>{t.loadDataset}</span>
+              <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
+            </label>
           </div>
-
-          {/* HERO SECTION */}
-          <div className="text-center max-w-4xl mx-auto space-y-8 py-4">
-             {/* Badges */}
-             <div className="flex flex-wrap justify-center gap-3 animate-slide-up" style={{animationDelay: '0.1s'}}>
-                {t.heroBadges.map((badge, i) => (
-                  <span key={i} className="px-3 py-1.5 rounded-full neu-flat text-neu-primary text-[10px] md:text-xs font-mono font-bold uppercase tracking-wider">
-                    {badge}
-                  </span>
-                ))}
-             </div>
-             
-             {/* Title */}
-             <h2 className="text-4xl md:text-6xl font-bold text-neu-text tracking-tighter leading-tight animate-slide-up" style={{animationDelay: '0.2s'}}>
-               {t.heroTitle.includes(':') ? (
-                 <>
-                   {t.heroTitle.split(':')[0]}<span className="text-neu-textDim">:</span> <br className="hidden md:block" />
-                   <span className="bg-clip-text text-transparent bg-gradient-to-r from-neu-primary via-neu-text to-neu-secondary">
-                     {t.heroTitle.split(':')[1]}
-                   </span>
-                 </>
-               ) : (
-                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-neu-text via-neu-primary to-neu-text">
-                   {t.heroTitle}
-                 </span>
-               )}
-             </h2>
-
-             {/* Description */}
-             <p className="text-neu-textDim text-sm md:text-lg leading-relaxed max-w-2xl mx-auto animate-slide-up font-light" style={{animationDelay: '0.3s'}}>
-               {t.heroDescription}
-             </p>
-          </div>
-
         </header>
 
-        {/* NAVIGATION: Neumorphic Dock Style */}
-        <nav className="sticky top-4 z-40 mx-auto neu-flat p-1.5 flex items-center gap-1 mb-8 animate-fade-in w-fit max-w-[95vw] overflow-x-auto no-scrollbar">
+        {/* NAVIGATION: Brutalist Style */}
+        <nav className="flex gap-2 mb-12 animate-fade-in">
           <NavButton 
             active={activeTab === 'dashboard'} 
             onClick={() => setActiveTab('dashboard')} 
@@ -476,6 +405,23 @@ const AppContent: React.FC = () => {
             </div>
           </ErrorBoundary>
         </main>
+
+        {/* BRUTALIST FOOTER */}
+        <footer className="mt-16 pt-8 border-t border-basalt-700 flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="flex gap-8">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+              <span className="font-mono text-[10px] text-gray-500">CORE_SYNC: ACTIVE</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="font-mono text-[10px] text-gray-500">API_STATUS: ONLINE</span>
+            </div>
+          </div>
+          <div className="font-mono text-[10px] text-gray-600">
+            BASALT_INTELLIGENCE_SCAFFOLDING // V2.5
+          </div>
+        </footer>
       </div>
     </div>
   );
@@ -484,17 +430,16 @@ const AppContent: React.FC = () => {
 const NavButton = ({ active, onClick, icon, label, special }: any) => (
   <button
     onClick={onClick}
-    className={`relative px-3 md:px-6 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 md:gap-2.5 outline-none group flex-shrink-0 ${
+    className={`relative px-6 py-2.5 font-mono font-bold text-sm transition-all flex items-center gap-2.5 ${
       active 
-        ? 'text-neu-text neu-concave' 
-        : 'text-neu-textDim hover:text-neu-text hover:bg-neu-surface/50'
+        ? 'bg-yellow-400 text-black' 
+        : 'border-2 border-basalt-700 text-gray-400 hover:border-yellow-400 hover:text-white'
     }`}
   >
-    <span className={`transition-colors duration-300 ${active ? (special ? 'text-neu-secondary' : 'text-neu-primary') : 'text-neu-textDim group-hover:text-neu-text'}`}>
+    <span className={`transition-colors ${active ? 'text-black' : special ? 'text-green-400' : ''}`}>
       {icon}
     </span>
-    <span className="hidden sm:inline whitespace-nowrap">{label}</span>
-    {active && special && <span className="absolute inset-0 rounded-xl shadow-[0_0_15px_-3px_rgba(167,139,250,0.3)] pointer-events-none"></span>}
+    <span className="hidden sm:inline whitespace-nowrap uppercase">{label}</span>
   </button>
 );
 

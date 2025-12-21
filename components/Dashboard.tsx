@@ -8,35 +8,27 @@ import {
 } from 'recharts';
 import { Users, Code, Activity, Layers } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../contexts/ThemeContext';
 
 interface DashboardProps {
   projects: Project[];
 }
 
-// Dynamic colors based on theme
-const getColors = (isDark: boolean) => isDark ? [
-  '#22d3ee', // primary cyan
-  '#a78bfa', // secondary violet
-  '#f43f5e', // accent rose
-  '#2dd4bf', // teal
-  '#fbbf24', // amber
-  '#f87171', // red
-] : [
-  '#0891b2', // darker cyan for light mode
-  '#7c3aed', // darker violet
-  '#e11d48', // darker rose
-  '#14b8a6', // darker teal
-  '#d97706', // darker amber
-  '#ef4444', // darker red
+// Brutalist color palette
+const COLORS = [
+  '#facc15', // scaffold yellow
+  '#4ade80', // terminal green
+  '#f97316', // scaffold orange
+  '#ef4444', // red
+  '#3b82f6', // blue
+  '#a855f7', // purple
 ];
 
-const CustomTooltip = ({ active, payload, label, isDark }: any) => {
+const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="neu-flat p-3 z-50">
-        <p className="text-neu-text font-mono text-xs mb-1 font-bold">{label}</p>
-        <p className="text-neu-primary font-mono text-sm">
+      <div className="bg-basalt-900 border-2 border-basalt-700 p-3 z-50">
+        <p className="text-white font-mono text-xs mb-1 font-bold uppercase">{label}</p>
+        <p className="text-yellow-400 font-mono text-sm">
           {payload[0].value} Projects
         </p>
       </div>
@@ -47,8 +39,6 @@ const CustomTooltip = ({ active, payload, label, isDark }: any) => {
 
 export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
   const { t } = useLanguage();
-  const { isDark } = useTheme();
-  const COLORS = getColors(isDark);
   
   const trackData = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -77,64 +67,59 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in pb-10">
-      {/* Stat Cards */}
-      <Card glow className="lg:col-span-1">
+      {/* Stat Cards - Brutalist Basalt Blocks */}
+      <div className="basalt-block p-4">
+        <span className="font-mono text-[10px] text-yellow-400 block mb-1">// PROJECTS_SYNC</span>
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-neu-textDim text-xs font-mono uppercase tracking-widest">{t.totalProjects}</p>
-            <p className="text-4xl font-bold text-neu-text mt-2 font-mono tracking-tighter">{projects.length}</p>
-          </div>
-          <div className="p-3 neu-icon">
-             <Layers className="text-neu-primary w-6 h-6" />
+          <div className="text-4xl font-bold text-white font-mono tracking-tighter">{projects.length}</div>
+          <div className="bg-basalt-800 border border-basalt-700 p-2">
+            <Layers className="text-yellow-400 w-5 h-5" />
           </div>
         </div>
-      </Card>
+        <p className="text-gray-500 text-xs font-mono uppercase tracking-widest mt-2">{t.totalProjects}</p>
+      </div>
       
-      <Card glow className="lg:col-span-1">
+      <div className="basalt-block p-4">
+        <span className="font-mono text-[10px] text-gray-500 block mb-1">// ACTIVE_DEVS</span>
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-neu-textDim text-xs font-mono uppercase tracking-widest">{t.developers}</p>
-            <p className="text-4xl font-bold text-neu-text mt-2 font-mono tracking-tighter">{totalDevs}</p>
-          </div>
-          <div className="p-3 neu-icon">
-            <Users className="text-neu-secondary w-6 h-6" />
+          <div className="text-4xl font-bold text-white font-mono tracking-tighter">{totalDevs}</div>
+          <div className="bg-basalt-800 border border-basalt-700 p-2">
+            <Users className="text-green-400 w-5 h-5" />
           </div>
         </div>
-      </Card>
+        <p className="text-gray-500 text-xs font-mono uppercase tracking-widest mt-2">{t.developers}</p>
+      </div>
 
-      <Card glow className="lg:col-span-1">
+      <div className="basalt-block p-4">
+        <span className="font-mono text-[10px] text-gray-500 block mb-1">// TOP_TRACK</span>
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-neu-textDim text-xs font-mono uppercase tracking-widest">{t.topTrack}</p>
-            <p className="text-xl font-bold text-neu-text mt-2 font-mono truncate max-w-[150px]" title={trackData[0]?.name}>
-              {trackData[0]?.name || 'N/A'}
-            </p>
+          <div className="text-lg font-bold text-white font-mono truncate max-w-[150px]" title={trackData[0]?.name}>
+            {trackData[0]?.name || 'N/A'}
           </div>
-          <div className="p-3 neu-icon">
-            <Activity className="text-neu-accent w-6 h-6" />
+          <div className="bg-basalt-800 border border-basalt-700 p-2">
+            <Activity className="text-orange-400 w-5 h-5" />
           </div>
         </div>
-      </Card>
+        <p className="text-gray-500 text-xs font-mono uppercase tracking-widest mt-2">{t.topTrack}</p>
+      </div>
 
-      <Card glow className="lg:col-span-1">
+      <div className="basalt-block p-4">
+        <span className="font-mono text-[10px] text-gray-500 block mb-1">// TOP_TECH</span>
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-neu-textDim text-xs font-mono uppercase tracking-widest">{t.techStack}</p>
-            <p className="text-xl font-bold text-neu-text mt-2 font-mono truncate max-w-[150px]" title={techData[0]?.name}>
-               {techData[0]?.name || 'N/A'}
-            </p>
+          <div className="text-lg font-bold text-white font-mono truncate max-w-[150px]" title={techData[0]?.name}>
+            {techData[0]?.name || 'N/A'}
           </div>
-          <div className="p-3 neu-icon">
-            <Code className="text-emerald-500 w-6 h-6" />
+          <div className="bg-basalt-800 border border-basalt-700 p-2">
+            <Code className="text-green-400 w-5 h-5" />
           </div>
         </div>
-      </Card>
+        <p className="text-gray-500 text-xs font-mono uppercase tracking-widest mt-2">{t.techStack}</p>
+      </div>
 
       {/* Charts Section */}
       
       {/* Track Distribution - Pie Chart */}
       <Card title={t.trackDist} className="col-span-1 md:col-span-2 h-[450px]">
-        {/* Fixed: Use h-full to ensure ResponsiveContainer has a calculated height from parent flex container */}
         <div className="w-full h-full min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
@@ -146,7 +131,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
                 outerRadius={90}
                 paddingAngle={4}
                 dataKey="value"
-                stroke="none"
+                stroke="#0a0a0b"
+                strokeWidth={2}
               >
                 {trackData.map((entry, index) => (
                   <Cell 
@@ -156,16 +142,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
                   />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip isDark={isDark} />} />
+              <Tooltip content={<CustomTooltip />} />
               <Legend 
                 verticalAlign="bottom" 
                 height={36} 
-                iconType="circle"
+                iconType="square"
                 wrapperStyle={{ 
                   paddingTop: '20px', 
-                  fontFamily: 'JetBrains Mono', 
-                  fontSize: '11px',
-                  color: 'var(--neu-text)' 
+                  fontFamily: 'Space Mono', 
+                  fontSize: '10px',
+                  color: '#9ca3af',
+                  textTransform: 'uppercase'
                 }}
               />
             </PieChart>
@@ -175,7 +162,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
 
       {/* Tech Stack - Bar Chart */}
       <Card title={t.topTech} className="col-span-1 md:col-span-2 h-[450px]">
-        {/* Fixed: Use h-full to ensure ResponsiveContainer has a calculated height from parent flex container */}
         <div className="w-full h-full min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart 
@@ -183,23 +169,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
               layout="vertical" 
               margin={{ top: 10, right: 40, left: 20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'} />
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(250, 204, 21, 0.1)" />
               <XAxis type="number" hide />
               <YAxis 
                 dataKey="name" 
                 type="category" 
                 width={130} 
-                tick={{fill: 'var(--neu-text-dim)', fontSize: 11, fontFamily: 'JetBrains Mono'}}
+                tick={{fill: '#9ca3af', fontSize: 10, fontFamily: 'Space Mono'}}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip 
-                cursor={{fill: isDark ? 'rgba(34, 211, 238, 0.05)' : 'rgba(8, 145, 178, 0.08)'}}
-                content={<CustomTooltip isDark={isDark} />}
+                cursor={{fill: 'rgba(250, 204, 21, 0.05)'}}
+                content={<CustomTooltip />}
               />
               <Bar 
                 dataKey="value" 
-                radius={[0, 4, 4, 0]} 
+                radius={[0, 2, 2, 0]} 
                 barSize={24}
                 animationDuration={1500}
               >
