@@ -384,32 +384,23 @@ ${pipeline.masterPrompt}
     const p = t.platforms[key];
     const isSelected = pipeline.platform === key;
     return (
-      <div 
+      <button 
         onClick={() => handlePlatformSelect(key)}
-        className={`relative p-5 transition-all cursor-pointer group ${
+        className={`w-full p-2 flex items-center gap-3 transition-all text-left ${
           isSelected 
-            ? 'bg-yellow-400/10 border-2 border-yellow-400' 
-            : 'bg-basalt-900 border-2 border-basalt-700 hover:border-yellow-400/50'
+            ? 'bg-yellow-400/10 border border-yellow-400' 
+            : 'bg-basalt-900 border border-basalt-700 hover:border-yellow-400/50'
         }`}
       >
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex items-center gap-2 text-white font-bold text-lg font-mono">
-            <Icon className={`w-5 h-5 ${isSelected ? 'text-yellow-400' : 'text-gray-500'}`} />
-            {p.title}
-          </div>
-          {isSelected && <CheckCircle2 className="w-5 h-5 text-yellow-400" />}
-        </div>
-        <p className="text-gray-500 text-xs font-mono mb-4">{p.subtitle}</p>
-        
-        <div className="space-y-3">
-          <div className="text-xs text-white">
-            <span className="text-yellow-400 font-bold">Best for: </span>{p.bestFor}
-          </div>
-          <div className="text-xs text-gray-500 pl-2 border-l-2 border-basalt-700">
-            {p.time}
+        <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-yellow-400' : 'text-gray-500'}`} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-white font-bold text-xs font-mono">{p.title}</span>
+            <span className="text-[9px] text-gray-500 font-mono truncate">{p.time}</span>
           </div>
         </div>
-      </div>
+        {isSelected && <Check className="w-3 h-3 text-yellow-400 flex-shrink-0" />}
+      </button>
     );
   };
 
@@ -417,276 +408,249 @@ ${pipeline.masterPrompt}
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full min-h-0">
       
       {/* LEFT COLUMN: CONTROLS (Build Pipeline / Scaffolding) */}
-      <aside className="lg:col-span-4 flex flex-col gap-6 overflow-y-auto custom-scrollbar min-h-0">
+      <aside className="lg:col-span-4 flex flex-col gap-3 overflow-y-auto custom-scrollbar min-h-0">
         
-        {/* Mode Switcher - Brutalist */}
-        <div className="flex border-2 border-basalt-700">
+        {/* Mode Switcher - Compact */}
+        <div className="flex border-2 border-basalt-700 flex-shrink-0">
           <button
             onClick={() => setMode('explorer')}
-            className={`flex-1 py-3 font-mono font-bold uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2 font-mono font-bold uppercase text-[10px] tracking-wider transition-all flex items-center justify-center gap-1.5 ${
               mode === 'explorer' 
                 ? 'bg-yellow-400 text-black' 
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            <MessageSquare className="w-4 h-4" />
+            <MessageSquare className="w-3 h-3" />
             {t.modeExplorer}
           </button>
           <button
             onClick={() => setMode('builder')}
-            className={`flex-1 py-3 font-mono font-bold uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2 ${
+            className={`flex-1 py-2 font-mono font-bold uppercase text-[10px] tracking-wider transition-all flex items-center justify-center gap-1.5 ${
               mode === 'builder' 
                 ? 'bg-yellow-400 text-black' 
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Rocket className="w-4 h-4" />
+            <Rocket className="w-3 h-3" />
             {t.modeBuilder}
           </button>
         </div>
 
-        {/* Dataset Context Stats - Basalt Blocks */}
-        <section className="grid grid-cols-2 gap-4">
-          <div className="basalt-block p-4">
-            <span className="font-mono text-[10px] text-yellow-400 block mb-1">// PROJECTS_SYNC</span>
-            <div className="text-3xl font-bold text-white">{projects.length}</div>
+        {/* Dataset Stats - Compact Row */}
+        <section className="grid grid-cols-2 gap-2 flex-shrink-0">
+          <div className="bg-basalt-900 border border-basalt-700 p-2 flex items-center justify-between">
+            <span className="font-mono text-[9px] text-yellow-400">PROJ</span>
+            <span className="text-xl font-bold text-white font-mono">{projects.length}</span>
           </div>
-          <div className="basalt-block p-4">
-            <span className="font-mono text-[10px] text-gray-500 block mb-1">// ACTIVE_TRACKS</span>
-            <div className="text-3xl font-bold text-white">{uniqueTracks}</div>
+          <div className="bg-basalt-900 border border-basalt-700 p-2 flex items-center justify-between">
+            <span className="font-mono text-[9px] text-gray-500">TRACKS</span>
+            <span className="text-xl font-bold text-white font-mono">{uniqueTracks}</span>
           </div>
         </section>
 
         {mode === 'explorer' ? (
-          // EXPLORER CONTROLS - Data Query Section
-          <div className="space-y-6 animate-slide-up">
-            <section className="pl-4">
-              <h3 className="font-mono text-xs text-gray-500 mb-6 uppercase tracking-widest">{t.contextQuery}</h3>
-              <div className="scaffold-beam space-y-8">
-                
-                {/* Query Input Step */}
-                <div className="relative pl-8">
-                  <div className="scaffold-joint top-1"></div>
-                  <label className="font-mono text-[10px] text-yellow-400 block mb-2 uppercase">Query Input</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleChatSubmit()}
-                      placeholder={t.askPlaceholder}
-                      disabled={isChatLoading}
-                      className="flex-1 bg-basalt-800 border-2 border-basalt-700 p-3 font-mono text-sm text-white focus:border-yellow-400 outline-none transition-colors"
-                    />
-                    <button
-                      onClick={handleChatSubmit}
-                      disabled={isChatLoading || !chatInput.trim()}
-                      className="bg-yellow-400 text-black p-3 font-bold hover:translate-x-1 hover:-translate-y-1 transition-transform disabled:opacity-50 disabled:hover:translate-x-0 disabled:hover:translate-y-0"
-                    >
-                      {isChatLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
+          // EXPLORER CONTROLS - Compact High Density
+          <div className="flex-1 min-h-0 flex flex-col gap-3 animate-slide-up">
+            {/* Query Input */}
+            <div className="flex gap-1.5 flex-shrink-0">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleChatSubmit()}
+                placeholder={t.askPlaceholder}
+                disabled={isChatLoading}
+                className="flex-1 bg-basalt-800 border border-basalt-700 p-2 font-mono text-xs text-white focus:border-yellow-400 outline-none transition-colors"
+              />
+              <button
+                onClick={handleChatSubmit}
+                disabled={isChatLoading || !chatInput.trim()}
+                className="bg-yellow-400 text-black px-3 font-bold hover:bg-yellow-300 transition-colors disabled:opacity-50"
+              >
+                {isChatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+              </button>
+            </div>
 
-                {/* Quick Actions */}
-                <div className="relative pl-8">
-                  <div className="scaffold-joint top-1 scaffold-joint-inactive"></div>
-                  <label className="font-mono text-[10px] text-gray-500 block mb-2 uppercase">Quick Queries</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => setChatInput(language === 'es' ? '¿Cuáles son las 5 tecnologías más populares?' : 'What are the top 5 most popular technologies?')}
-                      className="p-2 border-2 border-basalt-700 text-[10px] text-gray-400 hover:border-yellow-400 hover:text-white transition-all text-left flex items-center font-mono"
-                    >
-                      <Zap className="w-3 h-3 mr-2 text-yellow-400 flex-shrink-0" />
-                      {language === 'es' ? 'Top Tech' : 'Top Tech'}
-                    </button>
-                    <button
-                      onClick={() => setChatInput(language === 'es' ? '¿Qué huecos u oportunidades existen?' : 'What gaps or opportunities exist?')}
-                      className="p-2 border-2 border-basalt-700 text-[10px] text-gray-400 hover:border-yellow-400 hover:text-white transition-all text-left flex items-center font-mono"
-                    >
-                      <Target className="w-3 h-3 mr-2 text-green-400 flex-shrink-0" />
-                      {language === 'es' ? 'Gaps' : 'Gaps'}
-                    </button>
-                    <button
-                      onClick={() => setChatInput(language === 'es' ? '¿Cuáles son las tendencias emergentes?' : 'What are the emerging trends?')}
-                      className="p-2 border-2 border-basalt-700 text-[10px] text-gray-400 hover:border-yellow-400 hover:text-white transition-all text-left flex items-center font-mono"
-                    >
-                      <Sparkles className="w-3 h-3 mr-2 text-purple-400 flex-shrink-0" />
-                      {language === 'es' ? 'Trends' : 'Trends'}
-                    </button>
-                    <button
-                      onClick={() => setChatInput(language === 'es' ? 'Dame ideas innovadoras basadas en los datos' : 'Give me innovative ideas based on the data')}
-                      className="p-2 border-2 border-basalt-700 text-[10px] text-gray-400 hover:border-yellow-400 hover:text-white transition-all text-left flex items-center font-mono"
-                    >
-                      <Lightbulb className="w-3 h-3 mr-2 text-orange-400 flex-shrink-0" />
-                      {language === 'es' ? 'Ideas' : 'Ideas'}
-                    </button>
-                  </div>
-                </div>
+            {/* Quick Queries - Compact Grid */}
+            <div className="grid grid-cols-4 gap-1 flex-shrink-0">
+              <button
+                onClick={() => setChatInput(language === 'es' ? '¿Cuáles son las 5 tecnologías más populares?' : 'What are the top 5 most popular technologies?')}
+                className="p-1.5 border border-basalt-700 text-[9px] text-gray-400 hover:border-yellow-400 hover:text-white transition-all flex flex-col items-center gap-0.5 font-mono"
+              >
+                <Zap className="w-3 h-3 text-yellow-400" />
+                TECH
+              </button>
+              <button
+                onClick={() => setChatInput(language === 'es' ? '¿Qué huecos u oportunidades existen?' : 'What gaps or opportunities exist?')}
+                className="p-1.5 border border-basalt-700 text-[9px] text-gray-400 hover:border-yellow-400 hover:text-white transition-all flex flex-col items-center gap-0.5 font-mono"
+              >
+                <Target className="w-3 h-3 text-green-400" />
+                GAPS
+              </button>
+              <button
+                onClick={() => setChatInput(language === 'es' ? '¿Cuáles son las tendencias emergentes?' : 'What are the emerging trends?')}
+                className="p-1.5 border border-basalt-700 text-[9px] text-gray-400 hover:border-yellow-400 hover:text-white transition-all flex flex-col items-center gap-0.5 font-mono"
+              >
+                <Sparkles className="w-3 h-3 text-purple-400" />
+                TREND
+              </button>
+              <button
+                onClick={() => setChatInput(language === 'es' ? 'Dame ideas innovadoras basadas en los datos' : 'Give me innovative ideas based on the data')}
+                className="p-1.5 border border-basalt-700 text-[9px] text-gray-400 hover:border-yellow-400 hover:text-white transition-all flex flex-col items-center gap-0.5 font-mono"
+              >
+                <Lightbulb className="w-3 h-3 text-orange-400" />
+                IDEAS
+              </button>
+            </div>
 
-                {/* Convert to Builder */}
-                {chatMessages.length > 0 && (
-                  <div className="relative pl-8">
-                    <button 
-                      onClick={convertChatToIdea} 
-                      className="w-full bg-yellow-400 text-black p-4 font-mono font-black text-sm flex items-center justify-between group"
-                    >
-                      {t.useInsight}
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </section>
+            {/* Convert to Builder */}
+            {chatMessages.length > 0 && (
+              <button 
+                onClick={convertChatToIdea} 
+                className="w-full bg-yellow-400 text-black p-2 font-mono font-bold text-[10px] flex items-center justify-center gap-2 hover:bg-yellow-300 transition-colors flex-shrink-0"
+              >
+                {t.useInsight}
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
           </div>
         ) : (
-          // BUILDER CONTROLS - Pipeline Stepper
-          <div className="space-y-6 animate-fade-in">
-            {/* Stepper Header */}
-            <div className="flex justify-between items-center px-2 mb-4">
-              {[t.stepPlatform, t.stepIdea, t.stepValidation, t.stepPRD, t.stepPrompt].map((step, idx) => (
-                <div key={idx} className="flex flex-col items-center gap-1 group cursor-pointer" onClick={() => idx <= builderStep && idx !== 0 && setBuilderStep(idx)}>
-                  <div className={`w-8 h-8 flex items-center justify-center text-xs font-mono font-bold transition-all ${
+          // BUILDER CONTROLS - Compact Pipeline
+          <div className="flex-1 min-h-0 flex flex-col gap-3 animate-fade-in">
+            {/* Stepper - Minimal Horizontal Row */}
+            <div className="flex gap-1 flex-shrink-0">
+              {[1, 2, 3, 4, 5].map((num, idx) => (
+                <button 
+                  key={idx} 
+                  onClick={() => idx <= builderStep && idx !== 0 && setBuilderStep(idx)}
+                  className={`flex-1 py-1.5 text-[9px] font-mono font-bold transition-all ${
                     idx === builderStep ? 'bg-yellow-400 text-black' :
-                    idx < builderStep ? 'bg-basalt-800 border-2 border-green-400 text-green-400' :
-                    'bg-basalt-800 border-2 border-basalt-700 text-gray-500'
-                  }`}>
-                    {idx < builderStep ? <Check className="w-4 h-4" /> : idx + 1}
-                  </div>
-                  <span className={`text-[9px] font-mono uppercase tracking-wider ${idx === builderStep ? 'text-yellow-400' : 'text-gray-600'}`}>{step.split(' ')[0]}</span>
-                </div>
+                    idx < builderStep ? 'bg-basalt-800 border border-green-400 text-green-400' :
+                    'bg-basalt-800 border border-basalt-700 text-gray-600'
+                  }`}
+                >
+                  {idx < builderStep ? '✓' : num}
+                </button>
               ))}
             </div>
 
-            {/* Build Pipeline Section */}
-            <section className="pl-4">
-              <h3 className="font-mono text-xs text-gray-500 mb-8 uppercase tracking-widest">Build Pipeline</h3>
-              <div className="scaffold-beam space-y-8">
+            {/* Build Content - Scrollable */}
+            <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-2">
 
-                {/* Step 0: Platform Selection */}
-                {builderStep === 0 && (
-                  <div className="relative pl-8 animate-slide-up space-y-4">
-                    <div className="scaffold-joint top-1"></div>
-                    <label className="font-mono text-[10px] text-yellow-400 block mb-2 uppercase">01 Platform Selection</label>
-                    {renderPlatformCard('v0', LayoutTemplate)}
-                    {renderPlatformCard('lovable', Layers)}
-                    {renderPlatformCard('google', Code2)}
+              {/* Step 0: Platform Selection */}
+              {builderStep === 0 && (
+                <div className="space-y-1.5 animate-slide-up">
+                  <span className="font-mono text-[9px] text-gray-500 block">SELECT_PLATFORM:</span>
+                  {renderPlatformCard('v0', LayoutTemplate)}
+                  {renderPlatformCard('lovable', Layers)}
+                  {renderPlatformCard('google', Code2)}
+                </div>
+              )}
+
+              {/* Step 1: Idea Input */}
+              {builderStep === 1 && (
+                <div className="space-y-2 animate-slide-up">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[9px] text-gray-500">PLATFORM: <span className="text-yellow-400">{t.platforms[pipeline.platform!].title}</span></span>
                   </div>
-                )}
+                  <textarea 
+                    value={ideaInput}
+                    onChange={(e) => setIdeaInput(e.target.value)}
+                    placeholder={t.describeIntuition}
+                    className="w-full h-20 bg-basalt-800 border border-basalt-700 p-2 font-mono text-xs text-white resize-none focus:border-yellow-400 outline-none"
+                  />
+                  <div className="flex gap-1.5">
+                    <button 
+                      onClick={() => generateStep('idea', false)}
+                      disabled={!ideaInput || isGenerating}
+                      className="flex-1 py-2 border border-basalt-700 text-white font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-1 hover:border-yellow-400 disabled:opacity-50"
+                    >
+                      {isGenerating ? <Loader2 className="animate-spin w-3 h-3" /> : <Lightbulb className="w-3 h-3" />}
+                      GEN
+                    </button>
+                    <button 
+                      onClick={() => generateStep('idea', true)}
+                      disabled={isGenerating}
+                      className="flex-1 py-2 bg-yellow-400 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-1 disabled:opacity-50"
+                    >
+                      <Zap className="w-3 h-3" />
+                      LUCKY
+                    </button>
+                  </div>
+                  {pipeline.idea && (
+                    <button onClick={() => setBuilderStep(2)} className="w-full py-1.5 text-yellow-400 text-[10px] font-mono hover:text-white flex items-center justify-center gap-1 border-t border-basalt-700">
+                      NEXT <ArrowRight className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              )}
 
-                {/* Step 1: Idea Input */}
-                {builderStep === 1 && (
-                  <div className="relative pl-8 animate-slide-up">
-                    <div className="scaffold-joint top-1"></div>
-                    <label className="font-mono text-[10px] text-yellow-400 block mb-2 uppercase">02 {t.stepIdea}</label>
-                    <p className="text-xs text-gray-500 font-mono mb-4">
-                      Platform: <span className="text-white font-bold">{t.platforms[pipeline.platform!].title}</span>
-                    </p>
-                    <textarea 
-                      value={ideaInput}
-                      onChange={(e) => setIdeaInput(e.target.value)}
-                      placeholder={t.describeIntuition}
-                      className="w-full h-32 bg-basalt-800 border-2 border-basalt-700 p-4 font-mono text-sm text-white resize-none focus:border-yellow-400 outline-none transition-colors"
-                    />
-                    <div className="flex gap-2 mt-4">
-                      <button 
-                        onClick={() => generateStep('idea', false)}
-                        disabled={!ideaInput || isGenerating}
-                        className="flex-1 py-3 border-2 border-basalt-700 text-white font-mono font-bold text-xs uppercase flex items-center justify-center gap-2 hover:border-yellow-400 transition-colors disabled:opacity-50"
-                      >
-                        {isGenerating ? <Loader2 className="animate-spin w-4 h-4" /> : <Lightbulb className="w-4 h-4" />}
-                        {t.generateConcept}
+              {/* Step 2: Validation */}
+              {builderStep === 2 && (
+                <div className="space-y-2 animate-slide-up">
+                  <span className="font-mono text-[9px] text-gray-500">VALIDATING: {t.platforms[pipeline.platform!].title}</span>
+                  <button 
+                    onClick={() => generateStep('validation')}
+                    disabled={isGenerating || pipeline.validation !== null}
+                    className="w-full py-2 bg-yellow-400 text-black font-mono font-bold uppercase text-[10px] flex items-center justify-center gap-1 disabled:opacity-50"
+                  >
+                    {isGenerating ? <Loader2 className="animate-spin w-3 h-3"/> : <Target className="w-3 h-3" />}
+                    {pipeline.validation ? '✓ DONE' : 'VALIDATE'}
+                  </button>
+                  {pipeline.validation && (
+                    <button onClick={() => setBuilderStep(3)} className="w-full py-1.5 text-yellow-400 text-[10px] font-mono hover:text-white flex items-center justify-center gap-1 border-t border-basalt-700">
+                      NEXT <ArrowRight className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Step 3: PRD */}
+              {builderStep === 3 && (
+                <div className="space-y-2 animate-slide-up">
+                  <span className="font-mono text-[9px] text-gray-500">GENERATING_PRD...</span>
+                  <button 
+                    onClick={() => generateStep('prd')}
+                    disabled={isGenerating || pipeline.prd !== null}
+                    className="w-full py-2 bg-yellow-400 text-black font-mono font-bold uppercase text-[10px] flex items-center justify-center gap-1 disabled:opacity-50"
+                  >
+                    {isGenerating ? <Loader2 className="animate-spin w-3 h-3"/> : <FileText className="w-3 h-3" />}
+                    {pipeline.prd ? '✓ DONE' : 'GEN PRD'}
+                  </button>
+                  {pipeline.prd && (
+                    <button onClick={() => setBuilderStep(4)} className="w-full py-1.5 text-yellow-400 text-[10px] font-mono hover:text-white flex items-center justify-center gap-1 border-t border-basalt-700">
+                      NEXT <ArrowRight className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Step 4: Master Prompt */}
+              {builderStep === 4 && (
+                <div className="space-y-2 animate-slide-up">
+                  <span className="font-mono text-[9px] text-gray-500">MASTER_PROMPT: {t.platforms[pipeline.platform!].title}</span>
+                  <button 
+                    onClick={() => generateStep('prompt')}
+                    disabled={isGenerating || pipeline.masterPrompt !== null}
+                    className="w-full py-2 bg-yellow-400 text-black font-mono font-bold uppercase text-[10px] flex items-center justify-center gap-1 disabled:opacity-50"
+                  >
+                    {isGenerating ? <Loader2 className="animate-spin w-3 h-3"/> : <Terminal className="w-3 h-3" />}
+                    {pipeline.masterPrompt ? '✓ DONE' : 'GENERATE'}
+                  </button>
+                  
+                  {pipeline.masterPrompt && (
+                    <div className="flex gap-1.5">
+                      <button onClick={exportPipeline} className="flex-1 py-1.5 border border-basalt-700 text-white text-[9px] font-mono font-bold uppercase flex items-center justify-center gap-1 hover:border-yellow-400">
+                        <Download className="w-3 h-3" /> EXPORT
                       </button>
-                      <button 
-                        onClick={() => generateStep('idea', true)}
-                        disabled={isGenerating}
-                        className="flex-1 py-3 bg-yellow-400 text-black font-mono font-bold text-xs uppercase flex items-center justify-center gap-2 hover:translate-x-1 hover:-translate-y-1 transition-transform disabled:opacity-50"
-                      >
-                        <Zap className="w-4 h-4" />
-                        {t.luckyMode}
+                      <button onClick={resetPipeline} className="flex-1 py-1.5 border border-red-500/50 text-red-400 text-[9px] font-mono font-bold uppercase flex items-center justify-center gap-1 hover:border-red-500">
+                        <Trash2 className="w-3 h-3" /> RESET
                       </button>
                     </div>
-                    {pipeline.idea && (
-                      <button onClick={() => setBuilderStep(2)} className="w-full py-3 text-yellow-400 text-xs font-mono hover:text-white flex items-center justify-center gap-1 mt-4 border-t border-basalt-700 pt-4">
-                        {nextStepLabel} <ArrowRight className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Step 2: Validation */}
-                {builderStep === 2 && (
-                  <div className="relative pl-8 animate-slide-up">
-                    <div className="scaffold-joint top-1"></div>
-                    <label className="font-mono text-[10px] text-yellow-400 block mb-2 uppercase">03 {t.stepValidation}</label>
-                    <p className="text-xs text-gray-500 font-mono mb-4">Validating viability for {t.platforms[pipeline.platform!].title}...</p>
-                    <button 
-                      onClick={() => generateStep('validation')}
-                      disabled={isGenerating || pipeline.validation !== null}
-                      className="w-full py-4 bg-yellow-400 text-black font-mono font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:translate-x-1 hover:-translate-y-1 transition-transform disabled:opacity-50"
-                    >
-                      {isGenerating ? <Loader2 className="animate-spin w-4 h-4"/> : <Target className="w-4 h-4" />}
-                      {pipeline.validation ? t.complete : t.runValidation}
-                    </button>
-                    {pipeline.validation && (
-                      <button onClick={() => setBuilderStep(3)} className="w-full py-3 text-yellow-400 text-xs font-mono hover:text-white flex items-center justify-center gap-1 mt-4 border-t border-basalt-700 pt-4">
-                        {nextStepLabel} <ArrowRight className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Step 3: PRD */}
-                {builderStep === 3 && (
-                  <div className="relative pl-8 animate-slide-up">
-                    <div className="scaffold-joint top-1"></div>
-                    <label className="font-mono text-[10px] text-yellow-400 block mb-2 uppercase">04 {t.stepPRD}</label>
-                    <p className="text-xs text-gray-500 font-mono mb-4">Drafting conceptual requirements (No code)...</p>
-                    <button 
-                      onClick={() => generateStep('prd')}
-                      disabled={isGenerating || pipeline.prd !== null}
-                      className="w-full py-4 bg-yellow-400 text-black font-mono font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:translate-x-1 hover:-translate-y-1 transition-transform disabled:opacity-50"
-                    >
-                      {isGenerating ? <Loader2 className="animate-spin w-4 h-4"/> : <FileText className="w-4 h-4" />}
-                      {pipeline.prd ? t.complete : t.generatePRD}
-                    </button>
-                    {pipeline.prd && (
-                      <button onClick={() => setBuilderStep(4)} className="w-full py-3 text-yellow-400 text-xs font-mono hover:text-white flex items-center justify-center gap-1 mt-4 border-t border-basalt-700 pt-4">
-                        {nextStepLabel} <ArrowRight className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Step 4: Master Prompt */}
-                {builderStep === 4 && (
-                  <div className="relative pl-8 animate-slide-up">
-                    <div className="scaffold-joint top-1"></div>
-                    <label className="font-mono text-[10px] text-yellow-400 block mb-2 uppercase">05 {t.stepPrompt}</label>
-                    <p className="text-xs text-gray-500 font-mono mb-4">Generating Master Prompt for {t.platforms[pipeline.platform!].title}...</p>
-                    <button 
-                      onClick={() => generateStep('prompt')}
-                      disabled={isGenerating || pipeline.masterPrompt !== null}
-                      className="w-full py-4 bg-yellow-400 text-black font-mono font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:translate-x-1 hover:-translate-y-1 transition-transform disabled:opacity-50"
-                    >
-                      {isGenerating ? <Loader2 className="animate-spin w-4 h-4"/> : <Terminal className="w-4 h-4" />}
-                      {pipeline.masterPrompt ? t.complete : t.generateMasterPrompt}
-                    </button>
-                    
-                    {pipeline.masterPrompt && (
-                      <div className="flex gap-2 mt-4">
-                        <button onClick={exportPipeline} className="flex-1 py-3 border-2 border-basalt-700 text-white text-xs font-mono font-bold uppercase flex items-center justify-center gap-2 hover:border-yellow-400 transition-colors">
-                          <Download className="w-4 h-4" /> {t.exportPipeline}
-                        </button>
-                        <button onClick={resetPipeline} className="flex-1 py-3 border-2 border-red-500/50 text-red-400 text-xs font-mono font-bold uppercase flex items-center justify-center gap-2 hover:border-red-500 transition-colors">
-                          <Trash2 className="w-4 h-4" /> {t.resetPipeline}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </section>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </aside>
