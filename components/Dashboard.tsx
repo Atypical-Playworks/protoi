@@ -110,7 +110,6 @@ const ProjectsModal: React.FC<ProjectsModalProps> = ({ isOpen, onClose, title, p
       <div 
         className="relative bg-basalt-900 border-2 border-yellow-400 w-[95vw] sm:w-[90vw] md:w-[80vw] lg:w-[60vw] max-w-2xl mx-4 flex flex-col animate-fade-in"
         style={{ 
-          maxHeight: 'calc(100vh - 2rem)',
           maxHeight: 'calc(100dvh - 2rem)' // Dynamic viewport height for mobile
         }}
         onClick={e => e.stopPropagation()}

@@ -24,24 +24,31 @@ If you're about to start a hackathon project, this dataset is your competitive a
 
 ---
 
-## 🌓 Neumorphic Design - Day & Night
+## 🌓 Latest Design - Flash UI Integration
 
-Built with a modern neumorphic design system. Smooth light/dark mode switching. Premium visual experience.
+Latest iteration featuring Flash UI integration with streaming code preview, advanced builder pipeline, and enhanced user experience.
 
+<div align="center">
+  <img src="docs/screenshots/protoi-flash-ui-main-interface.png" alt="Protoi Latest Design - Main Interface" width="49%">
+  <img src="docs/screenshots/protoi-flash-ui-builder-pipeline.png" alt="Protoi Latest Design - Builder Pipeline" width="49%">
+</div>
+
+<details>
+<summary>📸 View Previous Versions</summary>
+
+### Neumorphic Design (Previous Version)
 <div align="center">
   <img src="docs/screenshots/protoi-new-design-1.png" alt="Protoi Neumorphic Design - Day Mode" width="49%">
   <img src="docs/screenshots/protoi-new-design-2.png" alt="Protoi Neumorphic Design - Night Mode" width="49%">
 </div>
 
-<details>
-<summary>📸 View Previous Design (Before Neumorphism)</summary>
-
+### Original Design (Deprecated)
 <div align="center">
   <img src="docs/screenshots/protoi-old-design-1.png" alt="Original Design 1" width="49%">
   <img src="docs/screenshots/protoi-old-design-2.png" alt="Original Design 2" width="49%">
 </div>
 
-*Previous glassmorphic dark theme (deprecated)*
+*Previous versions maintained for reference*
 
 </details>
 

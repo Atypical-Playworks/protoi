@@ -13,7 +13,7 @@ export class GeminiService {
     return true;
   }
 
-  async generateContent(prompt: string, modelId: string = 'gemini-2.5-flash'): Promise<string> {
+  async generateContent(prompt: string, modelId: string = 'gemini-3-flash-preview'): Promise<string> {
     try {
       const response = await this.ai.models.generateContent({
         model: modelId,
@@ -32,9 +32,9 @@ export class GeminiService {
 
   // Streaming version - calls onChunk with each text chunk as it arrives
   async generateContentStream(
-    prompt: string, 
+    prompt: string,
     onChunk: (text: string) => void,
-    modelId: string = 'gemini-2.5-flash'
+    modelId: string = 'gemini-3-flash-preview'
   ): Promise<string> {
     try {
       const response = await this.ai.models.generateContentStream({
@@ -48,8 +48,10 @@ export class GeminiService {
       let fullText = '';
       for await (const chunk of response) {
         const chunkText = chunk.text || '';
-        fullText += chunkText;
-        onChunk(fullText); // Send accumulated text
+        if (chunkText) {
+          fullText += chunkText;
+          onChunk(chunkText); // Send only the new chunk
+        }
       }
 
       return fullText || "No response generated.";

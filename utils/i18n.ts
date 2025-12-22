@@ -243,7 +243,11 @@ export const translations = {
       copyFromTerminal: "Copy your prompt from the terminal.",
       validationComplete: "Validation complete — review findings above",
       prdComplete: "PRD complete — review your build plan",
-      exportAll: "EXPORT ALL"
+      exportAll: "EXPORT ALL",
+      // UI Preview
+      generatePreview: "GENERATE UI PREVIEW",
+      regeneratePreview: "REGENERATE PREVIEW",
+      generatingPreview: "GENERATING PREVIEW..."
     }
   },
   es: {
@@ -486,7 +490,11 @@ export const translations = {
       copyFromTerminal: "Copia tu prompt desde la terminal.",
       validationComplete: "Validación completa — revisa hallazgos arriba",
       prdComplete: "PRD completo — revisa tu plan de construcción",
-      exportAll: "EXPORTAR TODO"
+      exportAll: "EXPORTAR TODO",
+      // UI Preview
+      generatePreview: "GENERAR UI PREVIEW",
+      regeneratePreview: "REGENERAR PREVIEW",
+      generatingPreview: "GENERANDO PREVIEW..."
     }
   }
 };
