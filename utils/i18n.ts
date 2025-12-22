@@ -125,6 +125,7 @@ export const translations = {
     // Status
     waiting: "Ready when you are...",
     processing: "Thinking...",
+    connectingAI: "Connecting to AI...",
     terminalOutput: "Output",
     complete: "Done ✓",
     
@@ -216,7 +217,33 @@ export const translations = {
       noContentYet: "No content yet...",
       continueConversation: "Continue conversation...",
       langInstructionFull: "RESPOND IN ENGLISH.",
-      langInstructionShort: "Respond in English."
+      langInstructionShort: "Respond in English.",
+      langInstructionBuilder: "RESPOND IN ENGLISH.",
+      // Builder step descriptions - Informative about what each step does
+      stepDescPlatform: "Each platform has different strengths. v0 for fast UIs, Lovable for full-stack, AI Studio for AI-first apps.",
+      stepDescIdea: "Describe your concept or let AI find gaps in the dataset. Press Enter to refine your idea.",
+      stepDescValidation: "AI analyzes market fit, competition from the 320 projects, and technical risks for your platform.",
+      stepDescPRD: "Generates a Product Requirements Document: features, user flows, and AI integration points.",
+      stepDescPrompt: "Creates a copy-paste prompt optimized for your chosen platform to build the app.",
+      stepLabelIdea: "IDEA",
+      stepLabelValidation: "VALIDATE",
+      stepLabelPRD: "PRD",
+      stepLabelPrompt: "PROMPT",
+      generatingIdea: "Refining your concept...",
+      generatingValidation: "Analyzing market • competition • risks...",
+      generatingPRD: "Building features • flow • AI touchpoints...",
+      generatingPrompt: "Creating deploy-ready prompt...",
+      pressEnterToGen: "Press Enter to generate",
+      orClickLucky: "or click LUCKY for inspiration",
+      // Builder flow
+      continueValidate: "CONTINUE → VALIDATE",
+      continuePRD: "CONTINUE → PRD",
+      continuePrompt: "CONTINUE → MASTER PROMPT",
+      readyToDeploy: "Ready to deploy!",
+      copyFromTerminal: "Copy your prompt from the terminal.",
+      validationComplete: "Validation complete — review findings above",
+      prdComplete: "PRD complete — review your build plan",
+      exportAll: "EXPORT ALL"
     }
   },
   es: {
@@ -341,8 +368,7 @@ export const translations = {
 
     // Status
     waiting: "Listo cuando tú lo estés...",
-    processing: "Pensando...",
-    terminalOutput: "Salida",
+    processing: "Pensando...",    connectingAI: "Conectando con IA...",    terminalOutput: "Salida",
     complete: "Listo ✓",
     
     // Dashboard - New KPIs & Modals
@@ -433,7 +459,34 @@ export const translations = {
       noContentYet: "Sin contenido aún...",
       continueConversation: "Continuar conversación...",
       langInstructionFull: "CRITICAL: YOU MUST RESPOND EXCLUSIVELY IN SPANISH (ESPAÑOL). EXCEPT FOR THE MASTER PROMPT WHICH MUST BE IN ENGLISH.",
-      langInstructionShort: "Responde en Español."
+      langInstructionShort: "Responde en Español.",
+      langInstructionBuilder: "CRITICAL: YOU MUST RESPOND EXCLUSIVELY IN SPANISH (ESPAÑOL). Do NOT generate any Master Prompt or deployment prompt in this step.",
+      // Builder step descriptions
+      // Builder step descriptions - Informative about what each step does
+      stepDescPlatform: "Cada plataforma tiene fortalezas distintas. v0 para UIs rápidas, Lovable para full-stack, AI Studio para apps de IA.",
+      stepDescIdea: "Describe tu concepto o deja que la IA encuentre brechas en el dataset. Enter para refinar tu idea.",
+      stepDescValidation: "La IA analiza encaje de mercado, competencia de los 320 proyectos, y riesgos técnicos para tu plataforma.",
+      stepDescPRD: "Genera un Documento de Requisitos: funcionalidades, flujos de usuario, y puntos de integración con IA.",
+      stepDescPrompt: "Crea un prompt de copiar-pegar optimizado para tu plataforma elegida para construir la app.",
+      stepLabelIdea: "IDEA",
+      stepLabelValidation: "VALIDAR",
+      stepLabelPRD: "PRD",
+      stepLabelPrompt: "PROMPT",
+      generatingIdea: "Refinando tu concepto...",
+      generatingValidation: "Analizando mercado • competencia • riesgos...",
+      generatingPRD: "Construyendo features • flujo • puntos de IA...",
+      generatingPrompt: "Creando prompt de despliegue...",
+      pressEnterToGen: "Presiona Enter para generar",
+      orClickLucky: "o click en LUCKY para inspiración",
+      // Builder flow
+      continueValidate: "CONTINUAR → VALIDAR",
+      continuePRD: "CONTINUAR → PRD",
+      continuePrompt: "CONTINUAR → MASTER PROMPT",
+      readyToDeploy: "¡Listo para desplegar!",
+      copyFromTerminal: "Copia tu prompt desde la terminal.",
+      validationComplete: "Validación completa — revisa hallazgos arriba",
+      prdComplete: "PRD completo — revisa tu plan de construcción",
+      exportAll: "EXPORTAR TODO"
     }
   }
 };

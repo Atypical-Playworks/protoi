@@ -103,6 +103,7 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
   });
   const [ideaInput, setIdeaInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [streamingContent, setStreamingContent] = useState<string>(''); // For streaming responses
 
   // --- AUDIO STATE ---
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
@@ -216,12 +217,23 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
       5. Do not repeat general info. Go straight to the specific answer.
     `;
 
-    const response = await geminiService.generateContent(prompt, 'gemini-2.5-flash');
+    // Use streaming - update thread with partial content as it arrives
+    const response = await geminiService.generateContentStream(
+      prompt, 
+      (partialText) => {
+        setThreads(prev => prev.map(t => 
+          t.id === newThread.id 
+            ? { ...t, messages: [t.messages[0], { role: 'assistant', content: partialText }] }
+            : t
+        ));
+      },
+      'gemini-2.5-flash'
+    );
     
-    // Update thread with response
+    // Final update with complete response
     setThreads(prev => prev.map(t => 
       t.id === newThread.id 
-        ? { ...t, messages: [...t.messages, { role: 'assistant', content: response }] }
+        ? { ...t, messages: [t.messages[0], { role: 'assistant', content: response }] }
         : t
     ));
     setIsChatLoading(false);
@@ -276,12 +288,26 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
       5. Do not repeat general info. Go straight to the specific answer.
     `;
 
-    const response = await geminiService.generateContent(prompt, 'gemini-2.5-flash');
+    // Use streaming - update thread with partial content as it arrives
+    const currentThread = threads.find(t => t.id === activeThreadId);
+    const currentMessages = currentThread?.messages || [];
     
-    // Update thread with response
+    const response = await geminiService.generateContentStream(
+      prompt, 
+      (partialText) => {
+        setThreads(prev => prev.map(t => 
+          t.id === activeThreadId 
+            ? { ...t, messages: [...currentMessages, { role: 'user', content: userMessage }, { role: 'assistant', content: partialText }] }
+            : t
+        ));
+      },
+      'gemini-2.5-flash'
+    );
+    
+    // Final update with complete response
     setThreads(prev => prev.map(t => 
       t.id === activeThreadId 
-        ? { ...t, messages: [...t.messages, { role: 'assistant', content: response }] }
+        ? { ...t, messages: [...currentMessages, { role: 'user', content: userMessage }, { role: 'assistant', content: response }] }
         : t
     ));
     setIsChatLoading(false);
@@ -318,7 +344,9 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
     const extraContextStr = extraContext.length > 0 
       ? `\n\nADDITIONAL DOCUMENTS PROVIDED BY USER:\n${extraContext.map(doc => `--- ${doc.name} ---\n${doc.content}`).join('\n\n')}`
       : '';
-    const langInstruction = getLanguageInstruction();
+    // Use different language instructions: Builder steps use langInstructionBuilder (no Master Prompt mention)
+    // Only the final 'prompt' step uses langInstructionFull
+    const langInstruction = step === 'prompt' ? aiLabLabels.langInstructionFull : aiLabLabels.langInstructionBuilder;
     const platformInfo = t.platforms[pipeline.platform || 'google'];
     let prompt = '';
 
@@ -422,14 +450,36 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
       `;
     }
 
-    const result = await geminiService.generateContent(prompt, 'gemini-3-pro-preview');
+    const result = await geminiService.generateContentStream(
+      prompt, 
+      (partialText) => setStreamingContent(partialText),
+      'gemini-2.5-flash'
+    );
     
     setPipeline(prev => ({
       ...prev,
       [step === 'prompt' ? 'masterPrompt' : step]: result
     }));
     
+    setStreamingContent(''); // Clear streaming content
     setIsGenerating(false);
+  };
+
+  // Auto-advance to next step AND trigger generation
+  const advanceAndGenerate = async (nextStep: number, generateType: 'validation' | 'prd' | 'prompt') => {
+    setBuilderStep(nextStep);
+    // Small delay to allow UI to update before starting generation
+    setTimeout(() => {
+      generateStep(generateType);
+    }, 100);
+  };
+
+  // Handle Enter key in idea textarea
+  const handleIdeaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && ideaInput.trim() && !isGenerating) {
+      e.preventDefault();
+      generateStep('idea', false);
+    }
   };
 
   const resetPipeline = () => {
@@ -704,21 +754,41 @@ ${pipeline.masterPrompt}
         ) : (
           // BUILDER CONTROLS - Compact Pipeline
           <div className="flex-1 min-h-0 flex flex-col gap-3 animate-fade-in">
-            {/* Stepper - Minimal Horizontal Row */}
-            <div className="flex gap-1 flex-shrink-0">
-              {[1, 2, 3, 4, 5].map((num, idx) => (
-                <button 
-                  key={idx} 
-                  onClick={() => idx <= builderStep && idx !== 0 && setBuilderStep(idx)}
-                  className={`flex-1 py-1.5 text-[9px] font-mono font-bold transition-all ${
-                    idx === builderStep ? 'bg-yellow-400 text-black' :
-                    idx < builderStep ? 'bg-basalt-800 border border-green-400 text-green-400' :
-                    'bg-basalt-800 border border-basalt-700 text-gray-600'
-                  }`}
-                >
-                  {idx < builderStep ? '✓' : num}
-                </button>
-              ))}
+            {/* Stepper - Horizontal Row with Labels */}
+            <div className="flex-shrink-0 space-y-2">
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((num, idx) => {
+                  // Determine if this step is clickable (completed or current)
+                  const isClickable = idx <= builderStep && !isGenerating;
+                  return (
+                    <button 
+                      key={idx} 
+                      onClick={() => isClickable && setBuilderStep(idx)}
+                      disabled={!isClickable}
+                      className={`flex-1 py-1.5 text-[9px] font-mono font-bold transition-all ${
+                        idx === builderStep ? 'bg-yellow-400 text-black' :
+                        idx < builderStep ? 'bg-basalt-800 border border-green-400 text-green-400 hover:bg-green-400/10 cursor-pointer' :
+                        'bg-basalt-800 border border-basalt-700 text-gray-600 cursor-not-allowed'
+                      }`}
+                    >
+                      {idx < builderStep ? '✓' : num}
+                    </button>
+                  );
+                })}
+              </div>
+              {/* Step Description */}
+              <div className="bg-basalt-900/50 border border-basalt-700 p-2">
+                <div className="flex items-center gap-2">
+                  {isGenerating && <Loader2 className="w-3 h-3 text-yellow-400 animate-spin" />}
+                  <span className="font-mono text-[9px] text-gray-400">
+                    {builderStep === 0 && aiLabLabels.stepDescPlatform}
+                    {builderStep === 1 && (isGenerating ? aiLabLabels.generatingIdea : aiLabLabels.stepDescIdea)}
+                    {builderStep === 2 && (isGenerating ? aiLabLabels.generatingValidation : (pipeline.validation ? `✓ ${aiLabLabels.validationComplete}` : aiLabLabels.stepDescValidation))}
+                    {builderStep === 3 && (isGenerating ? aiLabLabels.generatingPRD : (pipeline.prd ? `✓ ${aiLabLabels.prdComplete}` : aiLabLabels.stepDescPRD))}
+                    {builderStep === 4 && (isGenerating ? aiLabLabels.generatingPrompt : (pipeline.masterPrompt ? `✓ ${aiLabLabels.readyToDeploy}` : aiLabLabels.stepDescPrompt))}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Build Content - Scrollable */}
@@ -743,9 +813,16 @@ ${pipeline.masterPrompt}
                   <textarea 
                     value={ideaInput}
                     onChange={(e) => setIdeaInput(e.target.value)}
+                    onKeyDown={handleIdeaKeyDown}
                     placeholder={t.describeIntuition}
                     className="w-full h-20 bg-basalt-800 border border-basalt-700 p-2 font-mono text-xs text-white resize-none focus:border-yellow-400 outline-none"
+                    disabled={isGenerating}
                   />
+                  {!pipeline.idea && (
+                    <p className="text-[8px] text-gray-600 font-mono text-center">
+                      {aiLabLabels.pressEnterToGen} • {aiLabLabels.orClickLucky}
+                    </p>
+                  )}
                   <div className="flex gap-1.5">
                     <button 
                       onClick={() => generateStep('idea', false)}
@@ -765,76 +842,60 @@ ${pipeline.masterPrompt}
                     </button>
                   </div>
                   {pipeline.idea && (
-                    <button onClick={() => setBuilderStep(2)} className="w-full py-1.5 text-yellow-400 text-[10px] font-mono hover:text-white flex items-center justify-center gap-1 border-t border-basalt-700">
-                      NEXT <ArrowRight className="w-3 h-3" />
+                    <button 
+                      onClick={() => advanceAndGenerate(2, 'validation')} 
+                      className="w-full py-2 bg-green-500 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-green-400 transition-colors"
+                    >
+                      <CheckCircle2 className="w-3 h-3" />
+                      {aiLabLabels.continueValidate}
                     </button>
                   )}
                 </div>
               )}
 
-              {/* Step 2: Validation */}
-              {builderStep === 2 && (
-                <div className="space-y-2 animate-slide-up">
-                  <span className="font-mono text-[9px] text-gray-500">VALIDATING: {t.platforms[pipeline.platform!].title}</span>
+              {/* Step 2: Validation - Only show continue button when done */}
+              {builderStep === 2 && pipeline.validation && !isGenerating && (
+                <div className="animate-slide-up">
                   <button 
-                    onClick={() => generateStep('validation')}
-                    disabled={isGenerating || pipeline.validation !== null}
-                    className="w-full py-2 bg-yellow-400 text-black font-mono font-bold uppercase text-[10px] flex items-center justify-center gap-1 disabled:opacity-50"
+                    onClick={() => advanceAndGenerate(3, 'prd')} 
+                    className="w-full py-2 bg-green-500 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-green-400 transition-colors"
                   >
-                    {isGenerating ? <Loader2 className="animate-spin w-3 h-3"/> : <Target className="w-3 h-3" />}
-                    {pipeline.validation ? '✓ DONE' : 'VALIDATE'}
+                    <CheckCircle2 className="w-3 h-3" />
+                    {aiLabLabels.continuePRD}
                   </button>
-                  {pipeline.validation && (
-                    <button onClick={() => setBuilderStep(3)} className="w-full py-1.5 text-yellow-400 text-[10px] font-mono hover:text-white flex items-center justify-center gap-1 border-t border-basalt-700">
-                      NEXT <ArrowRight className="w-3 h-3" />
-                    </button>
-                  )}
                 </div>
               )}
 
-              {/* Step 3: PRD */}
-              {builderStep === 3 && (
-                <div className="space-y-2 animate-slide-up">
-                  <span className="font-mono text-[9px] text-gray-500">GENERATING_PRD...</span>
+              {/* Step 3: PRD - Only show continue button when done */}
+              {builderStep === 3 && pipeline.prd && !isGenerating && (
+                <div className="animate-slide-up">
                   <button 
-                    onClick={() => generateStep('prd')}
-                    disabled={isGenerating || pipeline.prd !== null}
-                    className="w-full py-2 bg-yellow-400 text-black font-mono font-bold uppercase text-[10px] flex items-center justify-center gap-1 disabled:opacity-50"
+                    onClick={() => advanceAndGenerate(4, 'prompt')} 
+                    className="w-full py-2 bg-green-500 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-green-400 transition-colors"
                   >
-                    {isGenerating ? <Loader2 className="animate-spin w-3 h-3"/> : <FileText className="w-3 h-3" />}
-                    {pipeline.prd ? '✓ DONE' : 'GEN PRD'}
+                    <CheckCircle2 className="w-3 h-3" />
+                    {aiLabLabels.continuePrompt}
                   </button>
-                  {pipeline.prd && (
-                    <button onClick={() => setBuilderStep(4)} className="w-full py-1.5 text-yellow-400 text-[10px] font-mono hover:text-white flex items-center justify-center gap-1 border-t border-basalt-700">
-                      NEXT <ArrowRight className="w-3 h-3" />
-                    </button>
-                  )}
                 </div>
               )}
 
-              {/* Step 4: Master Prompt */}
-              {builderStep === 4 && (
+              {/* Step 4: Master Prompt - Only show actions when done */}
+              {builderStep === 4 && pipeline.masterPrompt && !isGenerating && (
                 <div className="space-y-2 animate-slide-up">
-                  <span className="font-mono text-[9px] text-gray-500">MASTER_PROMPT: {t.platforms[pipeline.platform!].title}</span>
-                  <button 
-                    onClick={() => generateStep('prompt')}
-                    disabled={isGenerating || pipeline.masterPrompt !== null}
-                    className="w-full py-2 bg-yellow-400 text-black font-mono font-bold uppercase text-[10px] flex items-center justify-center gap-1 disabled:opacity-50"
-                  >
-                    {isGenerating ? <Loader2 className="animate-spin w-3 h-3"/> : <Terminal className="w-3 h-3" />}
-                    {pipeline.masterPrompt ? '✓ DONE' : 'GENERATE'}
-                  </button>
-                  
-                  {pipeline.masterPrompt && (
-                    <div className="flex gap-1.5">
-                      <button onClick={exportPipeline} className="flex-1 py-1.5 border border-basalt-700 text-white text-[9px] font-mono font-bold uppercase flex items-center justify-center gap-1 hover:border-yellow-400">
-                        <Download className="w-3 h-3" /> EXPORT
-                      </button>
-                      <button onClick={resetPipeline} className="flex-1 py-1.5 border border-red-500/50 text-red-400 text-[9px] font-mono font-bold uppercase flex items-center justify-center gap-1 hover:border-red-500">
-                        <Trash2 className="w-3 h-3" /> RESET
-                      </button>
-                    </div>
-                  )}
+                  <div className="bg-green-500/10 border border-green-500 p-3">
+                    <p className="font-mono text-[10px] text-green-400 flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4" />
+                      {aiLabLabels.readyToDeploy} {aiLabLabels.copyFromTerminal}
+                    </p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button onClick={exportPipeline} className="flex-1 py-2 border border-basalt-700 text-white text-[9px] font-mono font-bold uppercase flex items-center justify-center gap-1 hover:border-yellow-400">
+                      <Download className="w-3 h-3" /> {aiLabLabels.exportAll}
+                    </button>
+                    <button onClick={resetPipeline} className="flex-1 py-2 border border-red-500/50 text-red-400 text-[9px] font-mono font-bold uppercase flex items-center justify-center gap-1 hover:border-red-500">
+                      <Trash2 className="w-3 h-3" /> RESET
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -883,12 +944,40 @@ ${pipeline.masterPrompt}
 
           {/* Terminal Content */}
           <div className="flex-1 min-h-0 p-3 md:p-6 font-mono text-xs md:text-sm relative overflow-y-auto terminal-glow custom-scrollbar">
-            {isGenerating || (isChatLoading && mode === 'explorer') ? (
+            {/* Show loading only for Chat mode without any messages yet */}
+            {(isChatLoading && mode === 'explorer' && chatMessages.length === 0) ? (
+              // Initial loading state for Chat
               <div className="flex flex-col items-center justify-center h-full space-y-4">
                 <Loader2 className="w-10 h-10 text-green-400 animate-spin" />
                 <p className="text-xs font-mono uppercase tracking-widest text-gray-500">{t.processing}</p>
                 <div className="w-48 h-1 bg-basalt-800 overflow-hidden">
                   <div className="h-full bg-yellow-400 animate-progress origin-left w-full"></div>
+                </div>
+              </div>
+            ) : (isGenerating && mode === 'builder') ? (
+              // Streaming Builder content - show immediately with streaming indicator
+              <div className="animate-fade-in markdown-content max-w-none">
+                <div>
+                  <div className="text-green-400 mb-4">&gt; EXECUTING_BUILD_PIPELINE...</div>
+                  <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/5 | <span className="text-yellow-400 animate-pulse">streaming...</span></div>
+                  {streamingContent ? (
+                    <ReactMarkdown components={{
+                      h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-yellow-400 mt-6 mb-4 border-b border-basalt-700 pb-2" {...props} />,
+                      h2: ({node, ...props}) => <h2 className="text-lg font-bold text-green-400 mt-6 mb-3" {...props} />,
+                      strong: ({node, ...props}) => <strong className="text-yellow-400 font-bold" {...props} />,
+                      code: ({node, ...props}) => <code className="bg-basalt-800 text-green-300 px-1.5 py-0.5 text-xs font-medium" {...props} />,
+                      pre: ({node, ...props}) => <pre className="bg-basalt-800/50 p-4 my-4 overflow-x-auto text-xs text-green-300 border border-basalt-700" {...props} />,
+                      ul: ({node, ...props}) => <ul className="space-y-1 my-4 text-gray-300" {...props} />,
+                      li: ({node, ...props}) => <li className="pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold" {...props} />
+                    }}>
+                      {streamingContent}
+                    </ReactMarkdown>
+                  ) : (
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <Loader2 className="w-4 h-4 animate-spin text-yellow-400" />
+                      <span className="animate-pulse">{t.connectingAI}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
@@ -948,7 +1037,7 @@ ${pipeline.masterPrompt}
                   ) : (
                     <div>
                       <div className="text-green-400 mb-4">&gt; EXECUTING_BUILD_PIPELINE...</div>
-                      <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/4</div>
+                      <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/5</div>
                       <ReactMarkdown components={{
                         h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-yellow-400 mt-6 mb-4 border-b border-basalt-700 pb-2" {...props} />,
                         h2: ({node, ...props}) => <h2 className="text-lg font-bold text-green-400 mt-6 mb-3" {...props} />,
@@ -1087,7 +1176,7 @@ ${pipeline.masterPrompt}
                   ) : mode === 'builder' && builderStep > 0 ? (
                     <div>
                       <div className="text-green-400 mb-4 text-lg">&gt; BUILD_PIPELINE</div>
-                      <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/4</div>
+                      <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/5</div>
                       <ReactMarkdown components={{
                         h1: ({node, ...props}) => <h1 className="text-3xl font-bold text-yellow-400 mt-8 mb-6 border-b border-basalt-700 pb-3" {...props} />,
                         h2: ({node, ...props}) => <h2 className="text-xl font-bold text-green-400 mt-8 mb-4" {...props} />,

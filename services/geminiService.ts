@@ -30,6 +30,35 @@ export class GeminiService {
     }
   }
 
+  // Streaming version - calls onChunk with each text chunk as it arrives
+  async generateContentStream(
+    prompt: string, 
+    onChunk: (text: string) => void,
+    modelId: string = 'gemini-2.5-flash'
+  ): Promise<string> {
+    try {
+      const response = await this.ai.models.generateContentStream({
+        model: modelId,
+        contents: prompt,
+        config: {
+          systemInstruction: SYSTEM_INSTRUCTION,
+        },
+      });
+
+      let fullText = '';
+      for await (const chunk of response) {
+        const chunkText = chunk.text || '';
+        fullText += chunkText;
+        onChunk(fullText); // Send accumulated text
+      }
+
+      return fullText || "No response generated.";
+    } catch (error: any) {
+      console.error("Gemini API Stream Error:", error);
+      return `Error: ${error.message || "Unknown error occurred"}`;
+    }
+  }
+
   async generateSpeech(text: string, language: 'en' | 'es'): Promise<string | null> {
     try {
       // Clean markdown symbols for better speech
