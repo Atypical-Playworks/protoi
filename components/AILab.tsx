@@ -1067,7 +1067,7 @@ ${pipeline.masterPrompt}
             {/* Stepper - Horizontal Row with Labels */}
             <div className="flex-shrink-0 space-y-2">
               <div className="flex gap-1">
-                {[1, 2, 3, 4].map((num, idx) => {
+                {[1, 2, 3, 4, 5].map((num, idx) => {
                   // Determine if this step is clickable
                   // Step 0 (platform) is always accessible
                   // Other steps are accessible if they have content or if we've reached them
@@ -1101,7 +1101,7 @@ ${pipeline.masterPrompt}
                           'bg-basalt-800 border border-basalt-700 text-gray-600 cursor-not-allowed'
                         }`}
                     >
-                      {idx < builderStep ? '✓' : (idx === 0 ? '0' : num)}
+                      {idx < builderStep ? '✓' : num}
                     </button>
                   );
                 })}
