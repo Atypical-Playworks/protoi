@@ -221,6 +221,7 @@ export const translations = {
       stepDescIdea: "Describe your concept or let AI find gaps in the dataset. Press Enter to refine your idea.",
       stepDescValidation: "AI analyzes market fit, competition from the 320 projects, and technical risks for your platform.",
       stepDescPRD: "Generates a Product Requirements Document: features, user flows, and AI integration points.",
+      stepDescPreview: "Generates a visual UI preview with HTML/CSS code that you can view as code or rendered design.",
       stepDescPrompt: "Creates a copy-paste prompt optimized for your chosen platform to build the app.",
       stepLabelIdea: "IDEA",
       stepLabelValidation: "VALIDATE",
@@ -235,16 +236,19 @@ export const translations = {
       // Builder flow
       continueValidate: "CONTINUE → VALIDATE",
       continuePRD: "CONTINUE → PRD",
+      continuePreview: "CONTINUE → PREVIEW UI",
       continuePrompt: "CONTINUE → MASTER PROMPT",
       readyToDeploy: "Ready to deploy!",
       copyFromTerminal: "Copy your prompt from the terminal.",
       validationComplete: "Validation complete — review findings above",
       prdComplete: "PRD complete — review your build plan",
+      previewComplete: "Preview complete — view code or design",
       exportAll: "EXPORT ALL",
       // UI Preview
       generatePreview: "GENERATE UI PREVIEW",
       regeneratePreview: "REGENERATE PREVIEW",
-      generatingPreview: "GENERATING PREVIEW..."
+      generatingPreview: "GENERATING PREVIEW...",
+      expandPreview: "Expand Preview"
     }
   },
   es: {
@@ -465,6 +469,7 @@ export const translations = {
       stepDescIdea: "Describe tu concepto o deja que la IA encuentre brechas en el dataset. Enter para refinar tu idea.",
       stepDescValidation: "La IA analiza encaje de mercado, competencia de los 320 proyectos, y riesgos técnicos para tu plataforma.",
       stepDescPRD: "Genera un Documento de Requisitos: funcionalidades, flujos de usuario, y puntos de integración con IA.",
+      stepDescPreview: "Genera una vista previa visual de UI con código HTML/CSS que puedes ver como código o diseño renderizado.",
       stepDescPrompt: "Crea un prompt de copiar-pegar optimizado para tu plataforma elegida para construir la app.",
       stepLabelIdea: "IDEA",
       stepLabelValidation: "VALIDAR",
@@ -479,16 +484,19 @@ export const translations = {
       // Builder flow
       continueValidate: "CONTINUAR → VALIDAR",
       continuePRD: "CONTINUAR → PRD",
+      continuePreview: "CONTINUAR → PREVIEW UI",
       continuePrompt: "CONTINUAR → MASTER PROMPT",
       readyToDeploy: "¡Listo para desplegar!",
       copyFromTerminal: "Copia tu prompt desde la terminal.",
       validationComplete: "Validación completa — revisa hallazgos arriba",
       prdComplete: "PRD completo — revisa tu plan de construcción",
+      previewComplete: "Preview completo — ver código o diseño",
       exportAll: "EXPORTAR TODO",
       // UI Preview
       generatePreview: "GENERAR UI PREVIEW",
       regeneratePreview: "REGENERAR PREVIEW",
-      generatingPreview: "GENERANDO PREVIEW..."
+      generatingPreview: "GENERANDO PREVIEW...",
+      expandPreview: "Expandir Preview"
     }
   }
 };
