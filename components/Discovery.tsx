@@ -198,7 +198,7 @@ export const Discovery: React.FC<DiscoveryProps> = ({ projects }) => {
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 space-y-6 max-h-[50vh] overflow-y-auto custom-scrollbar text-left">
+            <div className="p-6 space-y-6 text-left">
               
               {/* Description */}
               <div>

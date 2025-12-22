@@ -4,19 +4,23 @@ import ReactDOM from 'react-dom';
 import ReactMarkdown from 'react-markdown';
 import { Project } from '../types';
 import { geminiService, GeminiService } from '../services/geminiService';
-import { 
-  Sparkles, Zap, Loader2, Terminal, Copy, Check, 
-  Volume2, StopCircle, Lightbulb, 
-  Target, FileText, Rocket, Download, Trash2, 
+import {
+  Sparkles, Zap, Loader2, Terminal, Copy, Check,
+  Volume2, StopCircle, Lightbulb,
+  Target, FileText, Rocket, Download, Trash2,
   CheckCircle2, ArrowRight, MessageSquare, Send,
   LayoutTemplate, Layers, Code2, Database, Plus, History, X,
   Maximize2, Minimize2, Eye, RefreshCw
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
+// Model Selection
+const FAST_MODEL = 'gemini-3-flash-preview';
+const REASONING_MODEL = 'gemini-3-pro-preview';
+
 interface AILabProps {
   projects: Project[];
-  extraContext?: {name: string, content: string}[];
+  extraContext?: { name: string, content: string }[];
 }
 
 type PlatformType = 'v0' | 'lovable' | 'google' | null;
@@ -84,10 +88,10 @@ async function decodeAudioData(
 
 export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => {
   const { language, t } = useLanguage();
-  
+
   // Mode: 'explorer' (Chat) or 'builder' (Pipeline)
   const [mode, setMode] = useState<'explorer' | 'builder'>('explorer');
-  
+
   // --- THREADS STATE ---
   const [threads, setThreads] = useState<Thread[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -95,15 +99,15 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
   const [followUpInput, setFollowUpInput] = useState(''); // Input in terminal (continue thread)
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  
+
   // --- BUILD SESSIONS STATE ---
   const [buildSessions, setBuildSessions] = useState<BuildSession[]>([]);
   const [showBuildHistory, setShowBuildHistory] = useState(false);
   const [saveSessionName, setSaveSessionName] = useState('');
-  
+
   // --- TERMINAL MODAL STATE ---
   const [isTerminalMaximized, setIsTerminalMaximized] = useState(false);
-  
+
   // Get active thread
   const activeThread = threads.find(t => t.id === activeThreadId) || null;
   const chatMessages = activeThread?.messages || [];
@@ -225,6 +229,13 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
     }
   }, [builderStep, mode, pipeline.uiPreview]);
 
+  // Auto-generate UI Preview when reaching PRD step
+  useEffect(() => {
+    if (builderStep === 3 && mode === 'builder' && pipeline.prd && !pipeline.uiPreview && !isGeneratingPreview) {
+      generateUIPreview();
+    }
+  }, [builderStep, mode, pipeline.prd, pipeline.uiPreview, isGeneratingPreview]);
+
   useEffect(() => {
     return () => {
       stopAudio();
@@ -265,7 +276,7 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
 
     // Generate response
     const context = GeminiService.formatContext(projects);
-    const extraContextStr = extraContext.length > 0 
+    const extraContextStr = extraContext.length > 0
       ? `\n\nADDITIONAL DOCUMENTS PROVIDED BY USER:\n${extraContext.map(doc => `--- ${doc.name} ---\n${doc.content}`).join('\n\n')}`
       : '';
     const langInstruction = aiLabLabels.langInstructionShort;
@@ -290,20 +301,20 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
 
     // Use streaming - update thread with partial content as it arrives
     const response = await geminiService.generateContentStream(
-      prompt, 
+      prompt,
       (partialText) => {
-        setThreads(prev => prev.map(t => 
-          t.id === newThread.id 
+        setThreads(prev => prev.map(t =>
+          t.id === newThread.id
             ? { ...t, messages: [t.messages[0], { role: 'assistant', content: partialText }] }
             : t
         ));
       },
       'gemini-2.5-flash'
     );
-    
+
     // Final update with complete response
-    setThreads(prev => prev.map(t => 
-      t.id === newThread.id 
+    setThreads(prev => prev.map(t =>
+      t.id === newThread.id
         ? { ...t, messages: [t.messages[0], { role: 'assistant', content: response }] }
         : t
     ));
@@ -316,21 +327,21 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
 
     const userMessage = followUpInput.trim();
     setFollowUpInput('');
-    
+
     // Add user message to thread
-    setThreads(prev => prev.map(t => 
-      t.id === activeThreadId 
+    setThreads(prev => prev.map(t =>
+      t.id === activeThreadId
         ? { ...t, messages: [...t.messages, { role: 'user', content: userMessage }] }
         : t
     ));
     setIsChatLoading(true);
 
     const context = GeminiService.formatContext(projects);
-    const extraContextStr = extraContext.length > 0 
+    const extraContextStr = extraContext.length > 0
       ? `\n\nADDITIONAL DOCUMENTS PROVIDED BY USER:\n${extraContext.map(doc => `--- ${doc.name} ---\n${doc.content}`).join('\n\n')}`
       : '';
     const langInstruction = aiLabLabels.langInstructionShort;
-    
+
     // Get conversation history from active thread
     const thread = threads.find(t => t.id === activeThreadId);
     const conversationHistory = thread?.messages
@@ -362,22 +373,22 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
     // Use streaming - update thread with partial content as it arrives
     const currentThread = threads.find(t => t.id === activeThreadId);
     const currentMessages = currentThread?.messages || [];
-    
+
     const response = await geminiService.generateContentStream(
-      prompt, 
+      prompt,
       (partialText) => {
-        setThreads(prev => prev.map(t => 
-          t.id === activeThreadId 
+        setThreads(prev => prev.map(t =>
+          t.id === activeThreadId
             ? { ...t, messages: [...currentMessages, { role: 'user', content: userMessage }, { role: 'assistant', content: partialText }] }
             : t
         ));
       },
       'gemini-2.5-flash'
     );
-    
+
     // Final update with complete response
-    setThreads(prev => prev.map(t => 
-      t.id === activeThreadId 
+    setThreads(prev => prev.map(t =>
+      t.id === activeThreadId
         ? { ...t, messages: [...currentMessages, { role: 'user', content: userMessage }, { role: 'assistant', content: response }] }
         : t
     ));
@@ -413,7 +424,7 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
-    
+
     setBuildSessions(prev => [newSession, ...prev].slice(0, 10)); // Keep max 10 sessions
     setSaveSessionName(''); // Clear input
     return newSession.id;
@@ -423,7 +434,7 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
     const session = buildSessions.find(s => s.id === sessionId);
     if (session) {
       const loadedPipeline = { ...session.pipeline };
-      
+
       // If session doesn't have preview but there's one in localStorage, load it
       if (!loadedPipeline.uiPreview) {
         const savedPreview = localStorage.getItem('protoi_ui_preview');
@@ -431,7 +442,7 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
           loadedPipeline.uiPreview = savedPreview;
         }
       }
-      
+
       setPipeline(loadedPipeline);
       setBuilderStep(session.builderStep);
       setMode('builder');
@@ -446,15 +457,15 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
   const updateCurrentSession = () => {
     // Auto-save current session if it has meaningful content
     if (pipeline.platform || pipeline.idea || pipeline.validation || pipeline.prd) {
-      const existingSession = buildSessions.find(s => 
-        s.pipeline.platform === pipeline.platform && 
+      const existingSession = buildSessions.find(s =>
+        s.pipeline.platform === pipeline.platform &&
         s.pipeline.idea === pipeline.idea
       );
-      
+
       if (existingSession) {
         // Update existing session
-        setBuildSessions(prev => prev.map(s => 
-          s.id === existingSession.id 
+        setBuildSessions(prev => prev.map(s =>
+          s.id === existingSession.id
             ? { ...s, pipeline: { ...pipeline }, builderStep, updatedAt: Date.now() }
             : s
         ));
@@ -467,8 +478,8 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
 
   const handlePlatformSelect = (p: PlatformType) => {
     // When changing platform, clear all subsequent steps since they depend on the platform
-    setPipeline(prev => ({ 
-      ...prev, 
+    setPipeline(prev => ({
+      ...prev,
       platform: p,
       idea: null,
       validation: null,
@@ -484,9 +495,12 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
   const generateStep = async (step: 'idea' | 'validation' | 'prd' | 'prompt', luckyMode = false) => {
     setIsGenerating(true);
     stopAudio();
-    
+
+    // Select Model based on complexity
+    const modelToUse = step === 'idea' ? FAST_MODEL : REASONING_MODEL;
+
     const context = GeminiService.formatContext(projects);
-    const extraContextStr = extraContext.length > 0 
+    const extraContextStr = extraContext.length > 0
       ? `\n\nADDITIONAL DOCUMENTS PROVIDED BY USER:\n${extraContext.map(doc => `--- ${doc.name} ---\n${doc.content}`).join('\n\n')}`
       : '';
     // Use different language instructions: Builder steps use langInstructionBuilder (no Master Prompt mention)
@@ -508,8 +522,8 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
         ${extraContext.length > 0 ? `The user has uploaded ${extraContext.length} additional document(s) above - consider them when generating ideas.` : ''}
         
         TASK:
-        ${luckyMode 
-          ? "Analyze the dataset for 'Blue Ocean' gaps (unsolved problems) and generate a killer Hackathon idea that fits the platform's strengths." 
+        ${luckyMode
+          ? "Analyze the dataset for 'Blue Ocean' gaps (unsolved problems) and generate a killer Hackathon idea that fits the platform's strengths."
           : `Refine the user's intuition: "${ideaInput}". Ensure it fits the platform's constraints and stands out from the dataset.`}
         
         OUTPUT FORMAT (Markdown):
@@ -563,8 +577,8 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
       `;
     } else if (step === 'prompt') {
       // MASTER PROMPT IS ALWAYS IN ENGLISH FOR THE TOOLS
-      const uiPreviewCode = pipeline.uiPreview ? `\n\nUI PREVIEW CODE (Use this as design reference):\n${pipeline.uiPreview}` : '';
-      
+      const uiPreviewCode = `\n\nUI PREVIEW CODE (Use this as design reference):\n${pipeline.uiPreview}`;
+
       prompt = `
         CONTEXT:
         We are building a hackathon project on: ${platformInfo.title}.
@@ -600,20 +614,20 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
 
     let accumulatedText = '';
     const result = await geminiService.generateContentStream(
-      prompt, 
+      prompt,
       (chunkText) => {
         // Acumular el texto progresivamente para evitar saltos
         accumulatedText += chunkText;
         setStreamingContent(accumulatedText);
       },
-      'gemini-2.5-flash'
+      modelToUse
     );
-    
+
     // Clear dependent steps when regenerating an intermediate step
     const updates: Partial<Pipeline> = {
       [step === 'prompt' ? 'masterPrompt' : step]: result
     };
-    
+
     if (step === 'idea') {
       // Clear all subsequent steps
       updates.validation = null;
@@ -628,19 +642,17 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
       updates.uiPreview = null;
       localStorage.removeItem('protoi_ui_preview');
     } else if (step === 'prd') {
-      // Clear master prompt (it depends on PRD)
+      // Clear master prompt (it depends on PRD and uiPreview)
       updates.masterPrompt = null;
-      // Clear uiPreview since PRD changed and preview is based on PRD
-      updates.uiPreview = null;
-      localStorage.removeItem('protoi_ui_preview');
+      // Note: uiPreview depends on PRD, but since it's generated in the same step, don't clear it here
     }
     // If step === 'prompt', don't clear anything
-    
+
     setPipeline(prev => ({
       ...prev,
       ...updates
     }));
-    
+
     setStreamingContent(''); // Clear streaming content
     setIsGenerating(false);
   };
@@ -665,7 +677,7 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
   // Generate UI Preview using Flash UI style prompts
   const generateUIPreview = async () => {
     if (!pipeline.prd || isGeneratingPreview) return;
-    
+
     setIsGeneratingPreview(true);
     setPipeline(prev => ({ ...prev, uiPreview: null }));
     setPreviewTypewriterText(''); // Reset typewriter text
@@ -731,12 +743,12 @@ Return ONLY RAW HTML starting with <!DOCTYPE html>. Include all CSS in <style> t
           // Acumulador como en Flash UI
           accumulatedHtml += chunkText;
           setPipeline(prev => ({ ...prev, uiPreview: accumulatedHtml }));
-          
+
           // Typewriter effect for the preview overlay
           const currentText = previewTypewriterText;
           const newText = accumulatedHtml;
           const charsToAdd = newText.slice(currentText.length);
-          
+
           if (charsToAdd.length > 0) {
             let charIndex = 0;
             const typeChar = () => {
@@ -760,14 +772,14 @@ Return ONLY RAW HTML starting with <!DOCTYPE html>. Include all CSS in <style> t
 
       setPipeline(prev => ({ ...prev, uiPreview: finalHtml }));
       setPreviewTypewriterText(finalHtml); // Set final text
-      
+
       // Guardar el preview en localStorage para persistencia
       localStorage.setItem('protoi_ui_preview', finalHtml);
     } catch (error) {
       console.error('Error generating UI preview:', error);
       const errorHtml = `<div style="color: #ff6b6b; padding: 20px; font-family: monospace;">Error generating preview</div>`;
-      setPipeline(prev => ({ 
-        ...prev, 
+      setPipeline(prev => ({
+        ...prev,
         uiPreview: errorHtml
       }));
       setPreviewTypewriterText(errorHtml);
@@ -822,17 +834,17 @@ ${pipeline.masterPrompt}
 
   const handlePlayAudio = async () => {
     if (isPlaying) { stopAudio(); return; }
-    
-    const content = mode === 'explorer' 
-      ? chatMessages[chatMessages.length - 1]?.content 
+
+    const content = mode === 'explorer'
+      ? chatMessages[chatMessages.length - 1]?.content
       : (builderStep === 1 ? pipeline.idea : builderStep === 2 ? pipeline.validation : builderStep === 3 ? pipeline.prd : pipeline.masterPrompt);
-      
+
     if (!content) return;
 
     try {
       setIsGeneratingAudio(true);
       if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({sampleRate: 24000});
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       }
       if (audioContextRef.current.state === 'suspended') await audioContextRef.current.resume();
 
@@ -847,7 +859,7 @@ ${pipeline.masterPrompt}
         audioSourceRef.current = source;
         setIsPlaying(true);
       }
-    } catch (err) { console.error(err); } 
+    } catch (err) { console.error(err); }
     finally { setIsGeneratingAudio(false); }
   };
 
@@ -856,7 +868,7 @@ ${pipeline.masterPrompt}
     // Try to extract content inside code block if exists
     const codeMatch = content.match(/```text\n([\s\S]*?)\n```/);
     const textToCopy = codeMatch ? codeMatch[1] : content;
-    
+
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -866,19 +878,17 @@ ${pipeline.masterPrompt}
     const p = t.platforms[key];
     const isSelected = pipeline.platform === key;
     return (
-      <button 
+      <button
         onClick={() => handlePlatformSelect(key)}
-        className={`w-full p-2 flex items-center gap-3 transition-all text-left ${
-          isSelected 
-            ? 'bg-yellow-400/10 border border-yellow-400' 
-            : 'bg-basalt-900 border border-basalt-700 hover:border-yellow-400/50'
-        }`}
+        className={`w-full p-2 flex items-center gap-3 transition-all text-left ${isSelected
+          ? 'bg-yellow-400/10 border border-yellow-400'
+          : 'bg-basalt-900 border border-basalt-700 hover:border-yellow-400/50'
+          }`}
       >
         <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-yellow-400' : 'text-gray-500'}`} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-white font-bold text-xs font-mono">{p.title}</span>
-            <span className="text-[9px] text-gray-500 font-mono truncate">{p.time}</span>
           </div>
         </div>
         {isSelected && <Check className="w-3 h-3 text-yellow-400 flex-shrink-0" />}
@@ -888,30 +898,28 @@ ${pipeline.masterPrompt}
 
   return (
     <div className="flex flex-col md:grid md:grid-cols-12 gap-3 md:gap-6 h-full min-h-0">
-      
+
       {/* LEFT COLUMN: CONTROLS - Compact on mobile, scrollable on desktop */}
       <aside className="md:col-span-5 lg:col-span-4 xl:col-span-3 flex flex-col gap-2 flex-shrink-0 md:min-h-0 md:overflow-y-auto custom-scrollbar">
-        
+
         {/* Mode Switcher - Always visible */}
         <div className="flex border-2 border-basalt-700 flex-shrink-0">
           <button
             onClick={() => setMode('explorer')}
-            className={`flex-1 py-1.5 md:py-2 font-mono font-bold uppercase text-[9px] md:text-[10px] tracking-wider transition-all flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap ${
-              mode === 'explorer' 
-                ? 'bg-yellow-400 text-black' 
-                : 'text-gray-400 hover:text-white'
-            }`}
+            className={`flex-1 py-1.5 md:py-2 font-mono font-bold uppercase text-[9px] md:text-[10px] tracking-wider transition-all flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap ${mode === 'explorer'
+              ? 'bg-yellow-400 text-black'
+              : 'text-gray-400 hover:text-white'
+              }`}
           >
             <MessageSquare className="w-3 h-3 flex-shrink-0" />
             <span>{aiLabLabels.data}</span>
           </button>
           <button
             onClick={() => setMode('builder')}
-            className={`flex-1 py-1.5 md:py-2 font-mono font-bold uppercase text-[9px] md:text-[10px] tracking-wider transition-all flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap ${
-              mode === 'builder' 
-                ? 'bg-yellow-400 text-black' 
-                : 'text-gray-400 hover:text-white'
-            }`}
+            className={`flex-1 py-1.5 md:py-2 font-mono font-bold uppercase text-[9px] md:text-[10px] tracking-wider transition-all flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap ${mode === 'builder'
+              ? 'bg-yellow-400 text-black'
+              : 'text-gray-400 hover:text-white'
+              }`}
           >
             <Rocket className="w-3 h-3 flex-shrink-0" />
             <span>{aiLabLabels.build}</span>
@@ -1017,19 +1025,16 @@ ${pipeline.masterPrompt}
                     <button
                       key={thread.id}
                       onClick={() => setActiveThreadId(thread.id)}
-                      className={`group flex-shrink-0 w-[140px] md:w-full p-1.5 md:p-2 text-left transition-all flex items-center gap-2 ${
-                        activeThreadId === thread.id
-                          ? 'bg-yellow-400/10 border border-yellow-400'
-                          : 'bg-basalt-900 border border-basalt-700 hover:border-basalt-600'
-                      }`}
+                      className={`group flex-shrink-0 w-[140px] md:w-full p-1.5 md:p-2 text-left transition-all flex items-center gap-2 ${activeThreadId === thread.id
+                        ? 'bg-yellow-400/10 border border-yellow-400'
+                        : 'bg-basalt-900 border border-basalt-700 hover:border-basalt-600'
+                        }`}
                     >
-                      <MessageSquare className={`w-3 h-3 flex-shrink-0 ${
-                        activeThreadId === thread.id ? 'text-yellow-400' : 'text-gray-600'
-                      }`} />
+                      <MessageSquare className={`w-3 h-3 flex-shrink-0 ${activeThreadId === thread.id ? 'text-yellow-400' : 'text-gray-600'
+                        }`} />
                       <div className="flex-1 min-w-0">
-                        <p className={`font-mono text-[9px] md:text-[10px] truncate ${
-                          activeThreadId === thread.id ? 'text-white' : 'text-gray-400'
-                        }`}>
+                        <p className={`font-mono text-[9px] md:text-[10px] truncate ${activeThreadId === thread.id ? 'text-white' : 'text-gray-400'
+                          }`}>
                           {thread.title}
                         </p>
                       </div>
@@ -1047,8 +1052,8 @@ ${pipeline.masterPrompt}
 
             {/* Convert to Builder */}
             {chatMessages.length > 0 && (
-              <button 
-                onClick={convertChatToIdea} 
+              <button
+                onClick={convertChatToIdea}
                 className="w-full bg-yellow-400 text-black p-2 font-mono font-bold text-[10px] flex items-center justify-center gap-2 hover:bg-yellow-300 transition-colors flex-shrink-0"
               >
                 {t.useInsight}
@@ -1062,25 +1067,25 @@ ${pipeline.masterPrompt}
             {/* Stepper - Horizontal Row with Labels */}
             <div className="flex-shrink-0 space-y-2">
               <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((num, idx) => {
+                {[1, 2, 3, 4].map((num, idx) => {
                   // Determine if this step is clickable
                   // Step 0 (platform) is always accessible
                   // Other steps are accessible if they have content or if we've reached them
-                  const hasStepContent = 
+                  const hasStepContent =
                     (idx === 1 && pipeline.idea) ||
                     (idx === 2 && pipeline.validation) ||
                     (idx === 3 && pipeline.prd) ||
                     (idx === 4 && pipeline.masterPrompt);
-                  
+
                   const isClickable = (idx === 0 && (!pipeline.platform || builderStep > 0)) || hasStepContent || (idx <= builderStep && !isGenerating && !isGeneratingPreview);
-                  
+
                   return (
-                    <button 
-                      key={idx} 
+                    <button
+                      key={idx}
                       onClick={() => {
                         if (isClickable) {
                           setBuilderStep(idx);
-                          
+
                           // Load preview from localStorage when navigating to PRD step (3) if it has content
                           if (idx === 3 && pipeline.prd && !pipeline.uiPreview) {
                             const savedPreview = localStorage.getItem('protoi_ui_preview');
@@ -1091,11 +1096,10 @@ ${pipeline.masterPrompt}
                         }
                       }}
                       disabled={!isClickable}
-                      className={`flex-1 py-1.5 text-[9px] font-mono font-bold transition-all ${
-                        idx === builderStep ? 'bg-yellow-400 text-black' :
+                      className={`flex-1 py-1.5 text-[9px] font-mono font-bold transition-all ${idx === builderStep ? 'bg-yellow-400 text-black' :
                         (idx < builderStep || hasStepContent) ? 'bg-basalt-800 border border-green-400 text-green-400 hover:bg-green-400/10 cursor-pointer' :
-                        'bg-basalt-800 border border-basalt-700 text-gray-600 cursor-not-allowed'
-                      }`}
+                          'bg-basalt-800 border border-basalt-700 text-gray-600 cursor-not-allowed'
+                        }`}
                     >
                       {idx < builderStep ? '✓' : (idx === 0 ? '0' : num)}
                     </button>
@@ -1136,7 +1140,7 @@ ${pipeline.masterPrompt}
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[9px] text-gray-500">PLATFORM: <span className="text-yellow-400">{t.platforms[pipeline.platform!].title}</span></span>
                   </div>
-                  <textarea 
+                  <textarea
                     value={ideaInput}
                     onChange={(e) => setIdeaInput(e.target.value)}
                     onKeyDown={handleIdeaKeyDown}
@@ -1150,7 +1154,7 @@ ${pipeline.masterPrompt}
                     </p>
                   )}
                   <div className="flex gap-1.5">
-                    <button 
+                    <button
                       onClick={() => generateStep('idea', false)}
                       disabled={!ideaInput || isGenerating}
                       className="flex-1 py-2 border border-basalt-700 text-white font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-1 hover:border-yellow-400 disabled:opacity-50"
@@ -1158,7 +1162,7 @@ ${pipeline.masterPrompt}
                       {isGenerating ? <Loader2 className="animate-spin w-3 h-3" /> : <Lightbulb className="w-3 h-3" />}
                       GEN
                     </button>
-                    <button 
+                    <button
                       onClick={() => generateStep('idea', true)}
                       disabled={isGenerating}
                       className="flex-1 py-2 bg-yellow-400 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-1 disabled:opacity-50"
@@ -1168,8 +1172,8 @@ ${pipeline.masterPrompt}
                     </button>
                   </div>
                   {pipeline.idea && (
-                    <button 
-                      onClick={() => advanceAndGenerate(2, 'validation')} 
+                    <button
+                      onClick={() => advanceAndGenerate(2, 'validation')}
                       className="w-full py-2 bg-green-500 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-green-400 transition-colors"
                     >
                       <CheckCircle2 className="w-3 h-3" />
@@ -1182,8 +1186,8 @@ ${pipeline.masterPrompt}
               {/* Step 2: Validation - Only show continue button when done */}
               {builderStep === 2 && pipeline.validation && !isGenerating && (
                 <div className="animate-slide-up">
-                  <button 
-                    onClick={() => advanceAndGenerate(3, 'prd')} 
+                  <button
+                    onClick={() => advanceAndGenerate(3, 'prd')}
                     className="w-full py-2 bg-green-500 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-green-400 transition-colors"
                   >
                     <CheckCircle2 className="w-3 h-3" />
@@ -1192,32 +1196,9 @@ ${pipeline.masterPrompt}
                 </div>
               )}
 
-              {/* Step 3: PRD - Preview UI y continuar */}
+              {/* Step 3: PRD - Show preview and continue */}
               {builderStep === 3 && pipeline.prd && !isGenerating && (
                 <div className="space-y-2 animate-slide-up">
-                  {/* Botón para generar o regenerar preview */}
-                  <button 
-                    onClick={generateUIPreview}
-                    disabled={isGeneratingPreview}
-                    className="w-full py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:from-purple-400 hover:to-pink-400 transition-all disabled:opacity-50"
-                  >
-                    {isGeneratingPreview ? (
-                      <>
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        {aiLabLabels.generatingPreview || 'GENERANDO PREVIEW...'}
-                      </>
-                    ) : pipeline.uiPreview ? (
-                      <>
-                        <RefreshCw className="w-3 h-3" />
-                        {aiLabLabels.regeneratePreview || 'REGENERAR PREVIEW'}
-                      </>
-                    ) : (
-                      <>
-                        <Eye className="w-3 h-3" />
-                        {aiLabLabels.generatePreview || 'GENERAR UI PREVIEW'}
-                      </>
-                    )}
-                  </button>
                   {/* Mostrar preview si existe */}
                   {pipeline.uiPreview && (
                     <div className="relative border border-basalt-700 rounded overflow-hidden mt-2">
@@ -1243,8 +1224,39 @@ ${pipeline.masterPrompt}
                       </button>
                     </div>
                   )}
-                  <button 
-                    onClick={() => advanceAndGenerate(4, 'prompt')} 
+                  {pipeline.uiPreview && (
+                    <button
+                      onClick={() => advanceAndGenerate(4, 'prompt')}
+                      className="w-full py-2 bg-green-500 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-green-400 transition-colors"
+                    >
+                      <CheckCircle2 className="w-3 h-3" />
+                      {aiLabLabels.continuePrompt}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Step 4: Master Prompt - Only show actions cuando está listo */}
+              {builderStep === 4 && pipeline.masterPrompt && !isGenerating && (
+                <div className="space-y-2 animate-slide-up">
+                  {/* Mostrar preview */}
+                  <div className="relative border border-basalt-700 rounded overflow-hidden">
+                    <iframe
+                      srcDoc={pipeline.uiPreview}
+                      title="UI Preview"
+                      className="w-full h-64 md:h-80 bg-white"
+                      sandbox="allow-scripts allow-forms allow-modals allow-popups allow-presentation allow-same-origin"
+                    />
+                    <button
+                      onClick={() => setIsPreviewFullscreen(true)}
+                      className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded hover:bg-black/90 transition-all z-10"
+                      title="Full Screen Preview"
+                    >
+                      <Maximize2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => advanceAndGenerate(4, 'prompt')}
                     className="w-full py-2 bg-green-500 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-green-400 transition-colors"
                   >
                     <CheckCircle2 className="w-3 h-3" />
@@ -1266,8 +1278,8 @@ ${pipeline.masterPrompt}
                     <button onClick={exportPipeline} className="flex-1 py-2 border border-basalt-700 text-white text-[9px] font-mono font-bold uppercase flex items-center justify-center gap-1 hover:border-yellow-400">
                       <Download className="w-3 h-3" /> {aiLabLabels.exportAll}
                     </button>
-                    <button 
-                      onClick={() => saveBuildSession()} 
+                    <button
+                      onClick={() => saveBuildSession()}
                       className="flex-1 py-2 border border-blue-500/50 text-blue-400 text-[9px] font-mono font-bold uppercase flex items-center justify-center gap-1 hover:border-blue-500"
                       disabled={!pipeline.platform && !pipeline.idea}
                     >
@@ -1287,11 +1299,11 @@ ${pipeline.masterPrompt}
 
       {/* FULLSCREEN UI PREVIEW MODAL (portal) */}
       {isPreviewFullscreen && pipeline.uiPreview && ReactDOM.createPortal(
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm animate-fade-in flex items-center justify-center"
           onClick={() => setIsPreviewFullscreen(false)}
         >
-          <div 
+          <div
             className="relative w-full h-full md:w-5/6 md:h-5/6 bg-black border-2 border-basalt-700 rounded-lg overflow-hidden animate-scale-in flex flex-col"
             onClick={e => e.stopPropagation()}
           >
@@ -1315,11 +1327,11 @@ ${pipeline.masterPrompt}
 
       {/* BUILD HISTORY MODAL */}
       {showBuildHistory && ReactDOM.createPortal(
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm animate-fade-in flex items-center justify-center p-4"
           onClick={() => setShowBuildHistory(false)}
         >
-          <div 
+          <div
             className="relative w-full max-w-2xl bg-basalt-900 border-2 border-basalt-700 rounded-lg overflow-hidden animate-scale-in max-h-[80vh] flex flex-col"
             onClick={e => e.stopPropagation()}
           >
@@ -1332,7 +1344,7 @@ ${pipeline.masterPrompt}
                 <X className="w-6 h-6" />
               </button>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto p-4">
               {buildSessions.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
@@ -1387,7 +1399,7 @@ ${pipeline.masterPrompt}
       {/* RIGHT COLUMN: THE "BASALT" TERMINAL */}
       <main className="md:col-span-7 lg:col-span-8 xl:col-span-9 min-h-0 flex flex-col flex-1">
         <div className="basalt-block flex flex-col bg-black overflow-hidden border-2 border-basalt-800 h-[280px] md:h-auto md:flex-1 md:min-h-0">
-          
+
           {/* Terminal Header */}
           <div className="flex items-center justify-between bg-basalt-800 p-2 md:p-3 border-b-2 border-basalt-800 flex-shrink-0">
             <div className="flex gap-1.5 md:gap-2">
@@ -1440,16 +1452,16 @@ ${pipeline.masterPrompt}
               <div className="animate-fade-in markdown-content max-w-full overflow-x-auto">
                 <div>
                   <div className="text-green-400 mb-4">&gt; EXECUTING_BUILD_PIPELINE...</div>
-                  <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/5 | <span className="text-yellow-400 animate-pulse">streaming...</span></div>
+                  <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/4 | <span className="text-yellow-400 animate-pulse">streaming...</span></div>
                   {streamingContent ? (
                     <ReactMarkdown components={{
-                      h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-yellow-400 mt-6 mb-4 border-b border-basalt-700 pb-2" {...props} />,
-                      h2: ({node, ...props}) => <h2 className="text-lg font-bold text-green-400 mt-6 mb-3" {...props} />,
-                      strong: ({node, ...props}) => <strong className="text-yellow-400 font-bold" {...props} />,
-                      code: ({node, ...props}) => <code className="bg-basalt-800 text-green-300 px-1.5 py-0.5 text-xs font-medium" {...props} />,
-                      pre: ({node, ...props}) => <pre className="bg-basalt-800/50 p-4 my-4 overflow-x-auto max-w-full text-xs text-green-300 border border-basalt-700 whitespace-pre-wrap" {...props} />,
-                      ul: ({node, ...props}) => <ul className="space-y-1 my-4 text-gray-300" {...props} />,
-                      li: ({node, ...props}) => <li className="pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold" {...props} />
+                      h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-yellow-400 mt-6 mb-4 border-b border-basalt-700 pb-2" {...props} />,
+                      h2: ({ node, ...props }) => <h2 className="text-lg font-bold text-green-400 mt-6 mb-3" {...props} />,
+                      strong: ({ node, ...props }) => <strong className="text-yellow-400 font-bold" {...props} />,
+                      code: ({ node, ...props }) => <code className="bg-basalt-800 text-green-300 px-1.5 py-0.5 text-xs font-medium" {...props} />,
+                      pre: ({ node, ...props }) => <pre className="bg-basalt-800/50 p-4 my-4 overflow-x-auto max-w-full text-xs text-green-300 border border-basalt-700 whitespace-pre-wrap" {...props} />,
+                      ul: ({ node, ...props }) => <ul className="space-y-1 my-4 text-gray-300" {...props} />,
+                      li: ({ node, ...props }) => <li className="pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold" {...props} />
                     }}>
                       {streamingContent}
                     </ReactMarkdown>
@@ -1467,7 +1479,7 @@ ${pipeline.masterPrompt}
                   chatMessages.length > 0 ? (
                     <div className="space-y-3 md:space-y-4">
                       <div className="text-green-400 text-xs md:text-sm">&gt; {activeThread?.title.slice(0, 30)}...</div>
-                      
+
                       {/* Full Conversation */}
                       {chatMessages.map((msg, idx) => (
                         <div key={idx} className={`${msg.role === 'user' ? 'border-l-2 border-yellow-400 pl-3 md:pl-4' : ''}`}>
@@ -1479,14 +1491,14 @@ ${pipeline.masterPrompt}
                           ) : (
                             <div className="text-white mt-1 md:mt-2">
                               <ReactMarkdown components={{
-                                h1: ({node, ...props}) => <h1 className="text-base md:text-xl font-bold text-yellow-400 mb-2 md:mb-3" {...props} />,
-                                h2: ({node, ...props}) => <h2 className="text-sm md:text-base font-bold text-green-400 mt-3 md:mt-4 mb-1 md:mb-2" {...props} />,
-                                strong: ({node, ...props}) => <strong className="text-yellow-400 font-bold" {...props} />,
-                                ul: ({node, ...props}) => <ul className="space-y-0.5 md:space-y-1 my-1 md:my-2" {...props} />,
-                                li: ({node, ...props}) => <li className="text-gray-300 pl-3 md:pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold text-xs md:text-sm" {...props} />,
-                                code: ({node, ...props}) => <code className="bg-basalt-800 text-green-300 px-1 py-0.5 text-[10px] md:text-xs" {...props} />,
-                                pre: ({node, ...props}) => <pre className="bg-basalt-800/50 p-2 md:p-3 border border-basalt-700 my-2 md:my-3 overflow-x-auto text-[10px] md:text-xs text-green-300" {...props} />,
-                                p: ({node, ...props}) => <p className="text-xs md:text-sm text-gray-300 my-1 md:my-2" {...props} />,
+                                h1: ({ node, ...props }) => <h1 className="text-base md:text-xl font-bold text-yellow-400 mb-2 md:mb-3" {...props} />,
+                                h2: ({ node, ...props }) => <h2 className="text-sm md:text-base font-bold text-green-400 mt-3 md:mt-4 mb-1 md:mb-2" {...props} />,
+                                strong: ({ node, ...props }) => <strong className="text-yellow-400 font-bold" {...props} />,
+                                ul: ({ node, ...props }) => <ul className="space-y-0.5 md:space-y-1 my-1 md:my-2" {...props} />,
+                                li: ({ node, ...props }) => <li className="text-gray-300 pl-3 md:pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold text-xs md:text-sm" {...props} />,
+                                code: ({ node, ...props }) => <code className="bg-basalt-800 text-green-300 px-1 py-0.5 text-[10px] md:text-xs" {...props} />,
+                                pre: ({ node, ...props }) => <pre className="bg-basalt-800/50 p-2 md:p-3 border border-basalt-700 my-2 md:my-3 overflow-x-auto text-[10px] md:text-xs text-green-300" {...props} />,
+                                p: ({ node, ...props }) => <p className="text-xs md:text-sm text-gray-300 my-1 md:my-2" {...props} />,
                               }}>
                                 {msg.content}
                               </ReactMarkdown>
@@ -1519,15 +1531,15 @@ ${pipeline.masterPrompt}
                     // Normal Builder Output
                     <div>
                       <div className="text-green-400 mb-4">&gt; EXECUTING_BUILD_PIPELINE...</div>
-                      <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/5</div>
+                      <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/4</div>
                       <ReactMarkdown components={{
-                        h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-yellow-400 mt-6 mb-4 border-b border-basalt-700 pb-2" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-lg font-bold text-green-400 mt-6 mb-3" {...props} />,
-                        strong: ({node, ...props}) => <strong className="text-yellow-400 font-bold" {...props} />,
-                        code: ({node, ...props}) => <code className="bg-basalt-800 text-green-300 px-1.5 py-0.5 text-xs font-medium" {...props} />,
-                        pre: ({node, ...props}) => <pre className="bg-basalt-800/50 p-4 my-4 overflow-x-auto max-w-full text-xs text-green-300 border border-basalt-700 whitespace-pre-wrap" {...props} />,
-                        ul: ({node, ...props}) => <ul className="space-y-1 my-4 text-gray-300" {...props} />,
-                        li: ({node, ...props}) => <li className="pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold" {...props} />
+                        h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-yellow-400 mt-6 mb-4 border-b border-basalt-700 pb-2" {...props} />,
+                        h2: ({ node, ...props }) => <h2 className="text-lg font-bold text-green-400 mt-6 mb-3" {...props} />,
+                        strong: ({ node, ...props }) => <strong className="text-yellow-400 font-bold" {...props} />,
+                        code: ({ node, ...props }) => <code className="bg-basalt-800 text-green-300 px-1.5 py-0.5 text-xs font-medium" {...props} />,
+                        pre: ({ node, ...props }) => <pre className="bg-basalt-800/50 p-4 my-4 overflow-x-auto max-w-full text-xs text-green-300 border border-basalt-700 whitespace-pre-wrap" {...props} />,
+                        ul: ({ node, ...props }) => <ul className="space-y-1 my-4 text-gray-300" {...props} />,
+                        li: ({ node, ...props }) => <li className="pl-4 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold" {...props} />
                       }}>
                         {(builderStep === 1 ? pipeline.idea : builderStep === 2 ? pipeline.validation : builderStep === 3 ? pipeline.prd : pipeline.masterPrompt) || ''}
                       </ReactMarkdown>
@@ -1536,7 +1548,7 @@ ${pipeline.masterPrompt}
                 )}
               </div>
             )}
-            
+
             {/* Terminal Cursor */}
             {!isGenerating && !isChatLoading && (
               <div className="mt-4 flex items-center">
@@ -1550,12 +1562,12 @@ ${pipeline.masterPrompt}
           {mode === 'explorer' && activeThreadId && (
             <div className="p-2 md:p-3 bg-basalt-900 border-t-2 border-basalt-800 flex items-center gap-2 flex-shrink-0">
               <span className="text-yellow-400 font-mono font-bold text-xs md:text-sm">$</span>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={followUpInput}
                 onChange={(e) => setFollowUpInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleFollowUp()}
-                className="bg-transparent border-none outline-none font-mono text-xs flex-grow text-white placeholder:text-gray-500" 
+                className="bg-transparent border-none outline-none font-mono text-xs flex-grow text-white placeholder:text-gray-500"
                 placeholder={aiLabLabels.followUp}
                 disabled={isChatLoading}
               />
@@ -1573,11 +1585,11 @@ ${pipeline.masterPrompt}
 
       {/* MAXIMIZED TERMINAL MODAL */}
       {isTerminalMaximized && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm animate-fade-in"
           onClick={() => setIsTerminalMaximized(false)}
         >
-          <div 
+          <div
             className="absolute inset-2 md:inset-4 bg-[#0a0a0b] border-2 border-basalt-700 flex flex-col animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
@@ -1627,7 +1639,7 @@ ${pipeline.masterPrompt}
                     <div className="space-y-6">
                       <div className="text-green-400 text-lg">&gt; {activeThread?.title}</div>
                       <div className="text-gray-600 text-xs">[{chatMessages.length} {aiLabLabels.messages}]</div>
-                      
+
                       {chatMessages.map((msg, idx) => (
                         <div key={idx} className={`${msg.role === 'user' ? 'border-l-4 border-yellow-400 pl-6 py-2' : 'py-2'}`}>
                           <span className={`font-mono text-xs uppercase ${msg.role === 'user' ? 'text-yellow-400' : 'text-green-400'}`}>
@@ -1638,14 +1650,14 @@ ${pipeline.masterPrompt}
                           ) : (
                             <div className="text-white mt-3">
                               <ReactMarkdown components={{
-                                h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-yellow-400 mb-4" {...props} />,
-                                h2: ({node, ...props}) => <h2 className="text-lg font-bold text-green-400 mt-6 mb-3" {...props} />,
-                                strong: ({node, ...props}) => <strong className="text-yellow-400 font-bold" {...props} />,
-                                ul: ({node, ...props}) => <ul className="space-y-2 my-4" {...props} />,
-                                li: ({node, ...props}) => <li className="text-gray-300 pl-6 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold" {...props} />,
-                                code: ({node, ...props}) => <code className="bg-basalt-800 text-green-300 px-2 py-1 text-sm" {...props} />,
-                                pre: ({node, ...props}) => <pre className="bg-basalt-800/50 p-4 border border-basalt-700 my-4 overflow-x-auto text-sm text-green-300" {...props} />,
-                                p: ({node, ...props}) => <p className="text-base text-gray-300 my-3 leading-relaxed" {...props} />,
+                                h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-yellow-400 mb-4" {...props} />,
+                                h2: ({ node, ...props }) => <h2 className="text-lg font-bold text-green-400 mt-6 mb-3" {...props} />,
+                                strong: ({ node, ...props }) => <strong className="text-yellow-400 font-bold" {...props} />,
+                                ul: ({ node, ...props }) => <ul className="space-y-2 my-4" {...props} />,
+                                li: ({ node, ...props }) => <li className="text-gray-300 pl-6 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold" {...props} />,
+                                code: ({ node, ...props }) => <code className="bg-basalt-800 text-green-300 px-2 py-1 text-sm" {...props} />,
+                                pre: ({ node, ...props }) => <pre className="bg-basalt-800/50 p-4 border border-basalt-700 my-4 overflow-x-auto text-sm text-green-300" {...props} />,
+                                p: ({ node, ...props }) => <p className="text-base text-gray-300 my-3 leading-relaxed" {...props} />,
                               }}>
                                 {msg.content}
                               </ReactMarkdown>
@@ -1658,16 +1670,16 @@ ${pipeline.masterPrompt}
                   ) : mode === 'builder' && builderStep > 0 ? (
                     <div>
                       <div className="text-green-400 mb-4 text-lg">&gt; BUILD_PIPELINE</div>
-                      <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/5</div>
+                      <div className="text-gray-500 mb-6">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: {builderStep}/4</div>
                       <ReactMarkdown components={{
-                        h1: ({node, ...props}) => <h1 className="text-3xl font-bold text-yellow-400 mt-8 mb-6 border-b border-basalt-700 pb-3" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-xl font-bold text-green-400 mt-8 mb-4" {...props} />,
-                        strong: ({node, ...props}) => <strong className="text-yellow-400 font-bold" {...props} />,
-                        code: ({node, ...props}) => <code className="bg-basalt-800 text-green-300 px-2 py-1 text-sm font-medium" {...props} />,
-                        pre: ({node, ...props}) => <pre className="bg-basalt-800/50 p-6 my-6 overflow-x-auto text-sm text-green-300 border border-basalt-700" {...props} />,
-                        ul: ({node, ...props}) => <ul className="space-y-2 my-4 text-gray-300" {...props} />,
-                        li: ({node, ...props}) => <li className="pl-6 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold" {...props} />,
-                        p: ({node, ...props}) => <p className="text-base text-gray-300 my-3 leading-relaxed" {...props} />,
+                        h1: ({ node, ...props }) => <h1 className="text-3xl font-bold text-yellow-400 mt-8 mb-6 border-b border-basalt-700 pb-3" {...props} />,
+                        h2: ({ node, ...props }) => <h2 className="text-xl font-bold text-green-400 mt-8 mb-4" {...props} />,
+                        strong: ({ node, ...props }) => <strong className="text-yellow-400 font-bold" {...props} />,
+                        code: ({ node, ...props }) => <code className="bg-basalt-800 text-green-300 px-2 py-1 text-sm font-medium" {...props} />,
+                        pre: ({ node, ...props }) => <pre className="bg-basalt-800/50 p-6 my-6 overflow-x-auto text-sm text-green-300 border border-basalt-700" {...props} />,
+                        ul: ({ node, ...props }) => <ul className="space-y-2 my-4 text-gray-300" {...props} />,
+                        li: ({ node, ...props }) => <li className="pl-6 relative before:content-['+'] before:absolute before:left-0 before:text-yellow-400 before:font-bold" {...props} />,
+                        p: ({ node, ...props }) => <p className="text-base text-gray-300 my-3 leading-relaxed" {...props} />,
                       }}>
                         {(builderStep === 1 ? pipeline.idea : builderStep === 2 ? pipeline.validation : builderStep === 3 ? pipeline.prd : pipeline.masterPrompt) || ''}
                       </ReactMarkdown>
@@ -1686,12 +1698,12 @@ ${pipeline.masterPrompt}
             {mode === 'explorer' && activeThreadId && (
               <div className="p-4 bg-basalt-900 border-t-2 border-basalt-700 flex items-center gap-4 flex-shrink-0">
                 <span className="text-yellow-400 font-mono font-bold text-lg">$</span>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={followUpInput}
                   onChange={(e) => setFollowUpInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleFollowUp()}
-                  className="bg-transparent border-none outline-none font-mono text-base flex-grow text-white placeholder:text-gray-500" 
+                  className="bg-transparent border-none outline-none font-mono text-base flex-grow text-white placeholder:text-gray-500"
                   placeholder={aiLabLabels.continueConversation}
                   disabled={isChatLoading}
                   autoFocus

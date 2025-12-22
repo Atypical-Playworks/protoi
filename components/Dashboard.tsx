@@ -500,176 +500,166 @@ export const Dashboard: React.FC<DashboardProps> = ({ projects }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-4">
       
           {/* Category Distribution - Horizontal Bar */}
-          <Card title={labels.categoryBreakdown} subtitle={labels.categoryBreakdownDesc} className="h-[380px]">
-            <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={categoryData} 
-                    layout="vertical" 
-                    margin={{ top: 10, right: 40, left: 10, bottom: 5 }}
-                    onClick={(data) => {
-                      if (data && data.activeLabel) {
-                        setModalCategory(data.activeLabel);
-                        setActiveModal('category');
-                      }
-                    }}
-                    style={{ cursor: 'pointer' }}
+          <Card title={labels.categoryBreakdown} subtitle={labels.categoryBreakdownDesc}>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={categoryData} 
+                  layout="vertical" 
+                  margin={{ top: 10, right: 40, left: 10, bottom: 5 }}
+                  onClick={(data) => {
+                    if (data && data.activeLabel) {
+                      setModalCategory(data.activeLabel);
+                      setActiveModal('category');
+                    }
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(250, 204, 21, 0.1)" />
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    width={90} 
+                    tick={{fill: '#9ca3af', fontSize: 10, fontFamily: 'Space Mono'}}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar 
+                    dataKey="value" 
+                    radius={[0, 2, 2, 0]} 
+                    barSize={20}
+                    animationDuration={1500}
+                    className="cursor-pointer"
                   >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(250, 204, 21, 0.1)" />
-                    <XAxis type="number" hide />
-                    <YAxis 
-                      dataKey="name" 
-                      type="category" 
-                      width={90} 
-                      tick={{fill: '#9ca3af', fontSize: 10, fontFamily: 'Space Mono'}}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar 
-                      dataKey="value" 
-                      radius={[0, 2, 2, 0]} 
-                      barSize={20}
-                      animationDuration={1500}
-                      className="cursor-pointer"
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="text-gray-600 text-[9px] font-mono text-center pt-2">
+              {labels.clickBarToSee}
+            </p>
+          </Card>
+
+          {/* Gap Opportunities */}
+          <Card title={labels.gapOpportunities} subtitle={labels.gapOpportunitiesDesc}>
+            <div className="space-y-3 p-2">
+              {gapAnalysis.map((gap, i) => (
+                <div 
+                  key={gap.name} 
+                  className="flex items-center gap-3 cursor-pointer hover:bg-basalt-800/50 p-2 -m-2 transition-colors"
+                  onClick={() => {
+                    setModalCategory(gap.name);
+                    setActiveModal('category');
+                  }}
+                >
+                  <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-basalt-800 border border-basalt-700">
+                    <span className="font-mono text-xs text-yellow-400">#{i + 1}</span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-mono text-sm text-white">{gap.name}</span>
+                      <span className="font-mono text-xs text-gray-500">{gap.value} {labels.projectsLower}</span>
+                    </div>
+                    <div className="h-2 bg-basalt-800 rounded-none overflow-hidden">
+                      <div 
+                        className="h-full transition-all duration-1000"
+                        style={{ 
+                          width: `${Math.max(5, (gap.value / categoryData[0]?.value) * 100)}%`,
+                          backgroundColor: gap.fill
+                        }}
+                      />
+                    </div>
+                  </div>
+                  {gap.value < 10 && (
+                    <Target className="w-4 h-4 text-green-400 flex-shrink-0" title="Low competition!" />
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {/* Insight Box - Always visible at bottom */}
+            <div className="mt-3 p-3 border-l-4 border-yellow-400 bg-yellow-400/5">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                <span className="font-mono text-[10px] text-yellow-400 uppercase">{labels.insight}</span>
               </div>
-              <p className="flex-shrink-0 text-gray-600 text-[9px] font-mono text-center pt-2">
-                {labels.clickBarToSee}
+              <p className="font-mono text-xs text-gray-400">
+                {gapAnalysis.some(g => g.name === 'Legal') ? labels.insightLegal : labels.insightAccessibility}
               </p>
             </div>
           </Card>
 
-          {/* Gap Opportunities */}
-          <Card title={labels.gapOpportunities} subtitle={labels.gapOpportunitiesDesc} className="h-[380px]">
-            <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-3 p-2">
-                {gapAnalysis.map((gap, i) => (
-                  <div 
-                    key={gap.name} 
-                    className="flex items-center gap-3 cursor-pointer hover:bg-basalt-800/50 p-2 -m-2 transition-colors"
-                    onClick={() => {
-                      setModalCategory(gap.name);
-                      setActiveModal('category');
-                    }}
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-basalt-800 border border-basalt-700">
-                      <span className="font-mono text-xs text-yellow-400">#{i + 1}</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-mono text-sm text-white">{gap.name}</span>
-                        <span className="font-mono text-xs text-gray-500">{gap.value} {labels.projectsLower}</span>
-                      </div>
-                      <div className="h-2 bg-basalt-800 rounded-none overflow-hidden">
-                        <div 
-                          className="h-full transition-all duration-1000"
-                          style={{ 
-                            width: `${Math.max(5, (gap.value / categoryData[0]?.value) * 100)}%`,
-                            backgroundColor: gap.fill
-                          }}
-                        />
-                      </div>
-                    </div>
-                    {gap.value < 10 && (
-                      <Target className="w-4 h-4 text-green-400 flex-shrink-0" title="Low competition!" />
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Insight Box - Always visible at bottom */}
-              <div className="flex-shrink-0 mt-3 p-3 border-l-4 border-yellow-400 bg-yellow-400/5">
-                <div className="flex items-center gap-2 mb-1">
-                  <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                  <span className="font-mono text-[10px] text-yellow-400 uppercase">{labels.insight}</span>
-                </div>
-                <p className="font-mono text-xs text-gray-400">
-                  {gapAnalysis.some(g => g.name === 'Legal') ? labels.insightLegal : labels.insightAccessibility}
-                </p>
-              </div>
-            </div>
-          </Card>
-
           {/* Tech Stack */}
-          <Card title={labels.techStack} subtitle={labels.techStackDesc} className="h-[380px]">
-            <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={techData} 
-                    layout="vertical" 
-                    margin={{ top: 10, right: 40, left: 20, bottom: 5 }}
+          <Card title={labels.techStack} subtitle={labels.techStackDesc}>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart 
+                  data={techData} 
+                  layout="vertical" 
+                  margin={{ top: 10, right: 40, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(250, 204, 21, 0.1)" />
+                  <XAxis type="number" hide />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    width={100} 
+                    tick={{fill: '#9ca3af', fontSize: 10, fontFamily: 'Space Mono'}}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar 
+                    dataKey="value" 
+                    radius={[0, 2, 2, 0]} 
+                    barSize={20}
+                    animationDuration={1500}
                   >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="rgba(250, 204, 21, 0.1)" />
-                    <XAxis type="number" hide />
-                    <YAxis 
-                      dataKey="name" 
-                      type="category" 
-                      width={100} 
-                      tick={{fill: '#9ca3af', fontSize: 10, fontFamily: 'Space Mono'}}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar 
-                      dataKey="value" 
-                      radius={[0, 2, 2, 0]} 
-                      barSize={20}
-                      animationDuration={1500}
-                    >
-                      {techData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+                    {techData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </Card>
 
           {/* Keywords Cloud - Terminal Style */}
-          <Card title={labels.keywordsCloud} subtitle={labels.keywordsCloudDesc} className="h-[380px]">
-            <div className="flex flex-col h-full">
-              <div className="flex-1 min-h-0 overflow-hidden">
-                <div className="flex flex-wrap gap-2 content-start p-2">
-                  {keywordsCloud.map(({ word, count }, i) => {
-                    // Size based on frequency
-                    const maxCount = keywordsCloud[0]?.count || 1;
-                    const ratio = count / maxCount;
-                    const size = ratio > 0.7 ? 'text-lg' : ratio > 0.4 ? 'text-sm' : 'text-xs';
-                    const opacity = ratio > 0.5 ? 'opacity-100' : ratio > 0.3 ? 'opacity-80' : 'opacity-60';
-                    const color = i < 3 ? 'text-yellow-400' : i < 8 ? 'text-green-400' : 'text-gray-400';
-                    
-                    return (
-                      <span 
-                        key={word}
-                        className={`font-mono ${size} ${color} ${opacity} hover:text-white transition-colors cursor-default`}
-                        title={`${count} projects`}
-                      >
-                        {word}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-              
-              {/* Terminal prompt style */}
-              <div className="flex-shrink-0 pt-3 border-t border-basalt-700">
-                <div className="font-mono text-xs text-gray-500 flex items-center gap-2">
-                  <span className="text-green-400">$</span>
-                  <span className="animate-pulse">_</span>
-                  <span className="text-gray-600">
-                    {labels.analyzingProjects.replace('{count}', String(projects.length))}
+          <Card title={labels.keywordsCloud} subtitle={labels.keywordsCloudDesc}>
+            <div className="flex flex-wrap gap-2 content-start p-2 min-h-[200px]">
+              {keywordsCloud.map(({ word, count }, i) => {
+                // Size based on frequency
+                const maxCount = keywordsCloud[0]?.count || 1;
+                const ratio = count / maxCount;
+                const size = ratio > 0.7 ? 'text-lg' : ratio > 0.4 ? 'text-sm' : 'text-xs';
+                const opacity = ratio > 0.5 ? 'opacity-100' : ratio > 0.3 ? 'opacity-80' : 'opacity-60';
+                const color = i < 3 ? 'text-yellow-400' : i < 8 ? 'text-green-400' : 'text-gray-400';
+                
+                return (
+                  <span 
+                    key={word}
+                    className={`font-mono ${size} ${color} ${opacity} hover:text-white transition-colors cursor-default`}
+                    title={`${count} projects`}
+                  >
+                    {word}
                   </span>
-                </div>
+                );
+              })}
+            </div>
+            
+            {/* Terminal prompt style */}
+            <div className="pt-3 border-t border-basalt-700">
+              <div className="font-mono text-xs text-gray-500 flex items-center gap-2">
+                <span className="text-green-400">$</span>
+                <span className="animate-pulse">_</span>
+                <span className="text-gray-600">
+                  {labels.analyzingProjects.replace('{count}', String(projects.length))}
+                </span>
               </div>
             </div>
           </Card>

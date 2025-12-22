@@ -5,12 +5,12 @@ export const translations = {
   en: {
     // Header
     appName: "protoi",
-    appSubtitle: "From Data to Demo in 90 Minutes",
+    appSubtitle: "From Data to Demo",
     heroTitle: "Validate Your Idea Against 320 Real Hackathon Projects",
     heroDescription: "See what others have built. Check if your idea already exists. Find inspiration in real projects. Get ready-to-deploy prompts for v0, Lovable & AI Studio.",
     heroBadges: [
       "🏆 320 Google Gemini Projects",
-      "⚡ 90-Minute Build Pipeline",
+      "⚡ Instant Build Pipeline",
       "🚀 Deploy-Ready Prompts"
     ],
     downloadTemplate: "Template.csv",
@@ -23,7 +23,7 @@ export const translations = {
     clearExtraContext: "Clear extra context",
     contextAdded: "Context added",
     contextCleared: "Extra context cleared",
-    
+
     // Data Error Modal
     dataErrorModal: {
       title: "Dataset Not Loaded",
@@ -31,7 +31,7 @@ export const translations = {
       understood: "Got it",
       dontShowAgain: "Don't show this again"
     },
-    
+
     // Nav
     navDashboard: "Overview",
     navDiscovery: "Browse 320 Projects",
@@ -70,7 +70,7 @@ export const translations = {
     // AI Lab - Modes
     modeExplorer: "Ask The Data",
     modeBuilder: "Build Your Project",
-    
+
     // Explorer
     contextQuery: "Ask The Data",
     askPlaceholder: "What problems haven't been solved? What's missing? Ask me anything...",
@@ -87,27 +87,24 @@ export const translations = {
     platforms: {
       v0: {
         title: "⚡ v0.dev",
-        subtitle: "Ship Beautiful UIs Fast",
+        subtitle: "Agentic AI Builder – From Idea to Deployed App",
         bestFor: "Modern web apps, dashboards, landing pages, and MVPs with external APIs.",
-        strengths: "Generates production-ready React/Next.js code with shadcn/ui components. Deploys instantly to Vercel. Perfect for frontend-heavy projects.",
-        limitations: "No built-in database or backend logic. You'll need to connect your own data services (Supabase, Firebase, etc.).",
-        time: "working prototype in < 1 hour"
+        strengths: "Now an autonomous agent (v0.app launched August 2025): researches, plans, fixes bugs, and builds full apps with UI+backend+logic. Generates React/Next.js code with shadcn/ui + Tailwind. Integrates with GitHub, searches the web, inspects sites, and deploys to Vercel with one click. Supports MCP (Model Context Protocol) to connect external tools.",
+        limitations: "While it handles basic backend (APIs, DB), for very complex logic or advanced external services you need to connect your own APIs (Supabase, Firebase, etc.). 'Agentic mode' is powerful but can make unexpected decisions – requires human validation."
       },
       lovable: {
         title: "❤️ Lovable",
-        subtitle: "Full-Stack, No Setup",
-        bestFor: "Apps with user accounts, real-time features, and persistent data (social apps, SaaS tools, collaborative platforms).",
-        strengths: "Complete full-stack apps with Supabase backend, authentication, real-time updates, and database setup included. Export code anytime.",
-        limitations: "Opinionated tech stack (Supabase-based). Best if you're comfortable with their ecosystem. Adding custom AI models takes extra setup.",
-        time: "full app with auth in 1-2 hours"
+        subtitle: "Full-Stack AI Engineer – Pre-Configured Supabase",
+        bestFor: "SaaS MVPs, collaborative apps, internal tools, and any project needing auth + database from minute 1.",
+        strengths: "'Lovable 2.0' engine (July 2025): Structured Chat mode as dev agent, real-time multiplayer collaboration, and native Supabase integration (DB+Auth+Storage). Generates full-stack React+Vite apps with backend configured. Bidirectional GitHub sync. Can import designs from Figma via Builder.io. Ideal for non-coders and devs wanting extreme speed.",
+        limitations: "Opinionated stack (React+Supabase). UI customization within the platform is limited vs manual coding. Credit model can be costly if you iterate a lot (each change consumes credits). For large/complex apps, exporting to GitHub and continuing in VS Code is usually necessary."
       },
       google: {
-        title: "🧠 Google AI Studio",
-        subtitle: "AI-First Prototypes",
-        bestFor: "Projects where AI is the core feature: multimodal apps, long-context analysis, reasoning-heavy demos.",
-        strengths: "Direct access to Gemini 1.5 Pro/Flash. Native support for audio, video, and images. Handles 1M+ token context windows. Built-in Python sandbox.",
-        limitations: "Focus on AI functionality over polished UI. Best suited for Google Cloud deployments.",
-        time: "advanced AI demo in 1-3 hours"
+        title: "🧠 Google AI Studio + Gemini 3",
+        subtitle: "Multimodal Playground for AI-First Prototypes",
+        bestFor: "Demos where AI IS the product: multimodal analysis (text+image+video+audio), deep reasoning agents, apps processing massive contexts (1M+ tokens), research projects.",
+        strengths: "Direct access to Gemini 3 Pro/Flash (December 2025): Google's smartest model with PhD-level reasoning, top 1 on LMArena (1501 Elo), and state-of-the-art multimodal capabilities. Gemini 3 Deep Think for ultra-complex problems. Built-in tools: function calling, code execution, web search. Exports prompts to Colab/Vertex AI. Ideal for 'vibe coding' with advanced AI and quick experiments without setup.",
+        limitations: "Not an 'app builder' like v0 or Lovable – it's a prompt playground. For production you need to move code to Google Cloud (Vertex AI) or integrate manually. Generated UI is functional but basic. Better for complex AI logic than polished app design."
       }
     },
 
@@ -121,14 +118,14 @@ export const translations = {
     generateMasterPrompt: "Get Deploy Prompt",
     exportPipeline: "Download Full Plan",
     resetPipeline: "Start Fresh",
-    
+
     // Status
     waiting: "Ready when you are...",
     processing: "Thinking...",
     connectingAI: "Connecting to AI...",
     terminalOutput: "Output",
     complete: "Done ✓",
-    
+
     // Dashboard - New KPIs & Modals
     dashboard: {
       // Notifications
@@ -144,7 +141,7 @@ export const translations = {
       dataCleared: "Data cleared. Using samples.",
       datasetDownloaded: "Dataset downloaded successfully",
       errorDownloading: "Error downloading dataset",
-      
+
       // UI Labels
       reloadResetData: "Reload or Reset Data",
       docs: "docs",
@@ -153,18 +150,18 @@ export const translations = {
       downloadCsv: "Download CSV",
       importYourData: "Import your scraped data, CSVs or documents",
       yourData: "Your Data",
-      
+
       // Modal
       projects: "projects",
       noProjectsCategory: "No projects in this category",
       escToClose: "ESC or click outside to close",
       projectsWithDemo: "Projects with Demo",
-      projectsWithGithub: "Projects with GitHub", 
+      projectsWithGithub: "Projects with GitHub",
       projectsWithVideo: "Projects with Video",
       eliteProjects: "Elite Projects",
       clickToSeeList: "Click to see list",
       clickBarToSee: "Click a bar to see projects",
-      
+
       // KPI Cards
       deploymentRate: "Deployment Rate",
       deploymentRateDesc: "Projects with Demo",
@@ -177,7 +174,7 @@ export const translations = {
       avgEffortDesc: "Maturity Score",
       stackDominant: "Dominant Stack",
       stackDominantDesc: "Most used (excl. Gemini)",
-      
+
       // Charts
       categoryBreakdown: "Category Breakdown",
       categoryBreakdownDesc: "Inferred from description & keywords",
@@ -193,7 +190,7 @@ export const translations = {
       insightAccessibility: "Accessibility is a high-impact, low-saturation niche.",
       analyzingProjects: "Analyzing {count} projects..."
     },
-    
+
     // AI Lab extras
     aiLab: {
       nextStep: "Next Step",
@@ -220,7 +217,7 @@ export const translations = {
       langInstructionShort: "Respond in English.",
       langInstructionBuilder: "RESPOND IN ENGLISH.",
       // Builder step descriptions - Informative about what each step does
-      stepDescPlatform: "Each platform has different strengths. v0 for fast UIs, Lovable for full-stack, AI Studio for AI-first apps.",
+      stepDescPlatform: "Choose your platform based on your ideal stack: v0 for Next.js apps with instant deploy, Lovable for full-stack MVPs with pre-configured Supabase, or AI Studio for multimodal AI-centric prototypes.",
       stepDescIdea: "Describe your concept or let AI find gaps in the dataset. Press Enter to refine your idea.",
       stepDescValidation: "AI analyzes market fit, competition from the 320 projects, and technical risks for your platform.",
       stepDescPRD: "Generates a Product Requirements Document: features, user flows, and AI integration points.",
@@ -253,12 +250,12 @@ export const translations = {
   es: {
     // Header
     appName: "protoi",
-    appSubtitle: "De Datos a Demo en 90 Minutos",
+    appSubtitle: "De Datos a Demo",
     heroTitle: "Valida Tu Idea Contra 320 Proyectos Reales de Hackathon",
     heroDescription: "Mira qué han construido otros. Verifica si tu idea ya existe. Inspírate con proyectos reales. Obtén prompts listos para desplegar en v0, Lovable y AI Studio.",
     heroBadges: [
       "🏆 320 Proyectos Google Gemini",
-      "⚡ Pipeline de 90 Minutos",
+      "⚡ Pipeline Instantáneo",
       "🚀 Prompts Listos para Usar"
     ],
     downloadTemplate: "Plantilla.csv",
@@ -271,7 +268,7 @@ export const translations = {
     clearExtraContext: "Limpiar contexto extra",
     contextAdded: "Contexto agregado",
     contextCleared: "Contexto extra limpiado",
-    
+
     // Data Error Modal
     dataErrorModal: {
       title: "Dataset No Cargado",
@@ -279,7 +276,7 @@ export const translations = {
       understood: "Entendido",
       dontShowAgain: "No volver a mostrar"
     },
-    
+
     // Nav
     navDashboard: "Resumen",
     navDiscovery: "Explorar 320 Proyectos",
@@ -334,28 +331,25 @@ export const translations = {
     // Platform Selection
     platforms: {
       v0: {
-        title: "⚡ v0.dev",
-        subtitle: "UI Hermosas, Rápido",
-        bestFor: "Apps web modernas, dashboards, landing pages y MVPs con APIs externas.",
-        strengths: "Genera código React/Next.js listo para producción con componentes shadcn/ui. Despliega al instante en Vercel. Perfecto para proyectos frontend.",
-        limitations: "Sin base de datos o lógica backend incluida. Necesitarás conectar tus propios servicios de datos (Supabase, Firebase, etc.).",
-        time: "prototipo funcional en < 1 hora"
+        title: "⚡ v0 by Vercel",
+        subtitle: "Agentic AI Builder – De Idea a App Deployed",
+        bestFor: "Landing pages, dashboards interactivos, MVPs con UI premium y apps Next.js full-stack con backend integrado.",
+        strengths: "Ahora es un agente autónomo (v0.app lanzado Agosto 2025): investiga, planifica, corrige errores y construye apps completas con UI+backend+lógica. Genera código React/Next.js con shadcn/ui + Tailwind. Integra con GitHub, busca en web, inspecciona sitios, y se despliega en Vercel con un clic. Soporta MCP (Model Context Protocol) para conectar herramientas externas.",
+        limitations: "Aunque ahora maneja backend básico (APIs, DB), para lógica muy compleja o servicios externos avanzados necesitas conectar tus propias APIs (Supabase, Firebase, etc.). El 'agentic mode' es potente pero puede tomar decisiones inesperadas – requiere validación humana."
       },
       lovable: {
         title: "❤️ Lovable",
-        subtitle: "Full-Stack, Sin Configuración",
-        bestFor: "Apps con cuentas de usuario, funciones en tiempo real y datos persistentes (apps sociales, herramientas SaaS, plataformas colaborativas).",
-        strengths: "Apps full-stack completas con backend Supabase, autenticación, actualizaciones en tiempo real y base de datos incluida. Exporta el código cuando quieras.",
-        limitations: "Stack tecnológico opinado (basado en Supabase). Ideal si te sientes cómodo con su ecosistema. Agregar modelos IA personalizados requiere configuración extra.",
-        time: "app completa con auth en 1-2 horas"
+        subtitle: "Full-Stack AI Engineer – Supabase Pre-Configurado",
+        bestFor: "SaaS MVPs, apps colaborativas, herramientas internas, y cualquier proyecto que necesite autenticación + base de datos desde el minuto 1.",
+        strengths: "Motor 'Lovable 2.0' (Julio 2025): modo Chat estructurado como agente de desarrollo, colaboración multiplayer en tiempo real, y integración nativa con Supabase (DB+Auth+Storage). Genera apps full-stack React+Vite con todo el backend configurado. GitHub sync bidireccional. Puede importar diseños desde Figma vía Builder.io. Ideal para no-programadores y devs que quieren velocidad extrema.",
+        limitations: "Stack opinado (React+Supabase). Personalización UI dentro de la plataforma es limitada vs codear manualmente. Modelo de créditos puede ser costoso si iteras mucho (cada cambio consume créditos). Para apps grandes/complejas, exportar a GitHub y continuar en VS Code suele ser necesario."
       },
       google: {
-        title: "🧠 Google AI Studio",
-        subtitle: "Prototipos Centrados en IA",
-        bestFor: "Proyectos donde la IA es la característica principal: apps multimodales, análisis de contexto largo, demos con razonamiento complejo.",
-        strengths: "Acceso directo a Gemini 1.5 Pro/Flash. Soporte nativo para audio, video e imágenes. Maneja ventanas de contexto de 1M+ tokens. Sandbox Python integrado.",
-        limitations: "Enfoque en funcionalidad IA sobre UI pulido. Mejor para despliegues en Google Cloud.",
-        time: "demo IA avanzada en 1-3 horas"
+        title: "🧠 Google AI Studio + Gemini 3",
+        subtitle: "Playground Multimodal para Prototipos IA-First",
+        bestFor: "Demos donde la IA ES el producto: análisis multimodal (texto+imagen+video+audio), agentes con razonamiento profundo, apps que procesan contextos masivos (1M tokens), proyectos de investigación.",
+        strengths: "Acceso directo a Gemini 3 Pro/Flash (Diciembre 2025): el modelo más inteligente de Google con PhD-level reasoning, top 1 en LMArena (1501 Elo), y capacidades multimodales state-of-the-art. Gemini 3 Deep Think para problemas ultra-complejos. Herramientas integradas: function calling, code execution, web search. Exporta prompts a Colab/Vertex AI. Ideal para 'vibe coding' con IA avanzada y experimentos rápidos sin configurar nada.",
+        limitations: "No es un 'app builder' como v0 o Lovable – es un playground de prompts. Para producción necesitas mover tu código a Google Cloud (Vertex AI) o integrarlo manualmente. El UI generado es funcional pero básico. Mejor para lógica IA compleja que para apps pulidas con diseño."
       }
     },
 
@@ -372,9 +366,9 @@ export const translations = {
 
     // Status
     waiting: "Listo cuando tú lo estés...",
-    processing: "Pensando...",    connectingAI: "Conectando con IA...",    terminalOutput: "Salida",
+    processing: "Pensando...", connectingAI: "Conectando con IA...", terminalOutput: "Salida",
     complete: "Listo ✓",
-    
+
     // Dashboard - New KPIs & Modals
     dashboard: {
       // Notifications
@@ -390,7 +384,7 @@ export const translations = {
       dataCleared: "Datos borrados. Usando ejemplos.",
       datasetDownloaded: "Dataset descargado correctamente",
       errorDownloading: "Error al descargar el dataset",
-      
+
       // UI Labels
       reloadResetData: "Recargar o Resetear Datos",
       docs: "docs",
@@ -399,7 +393,7 @@ export const translations = {
       downloadCsv: "Descargar CSV",
       importYourData: "Importa tus propios datos scrapeados, CSVs o documentos",
       yourData: "Tus Datos",
-      
+
       // Modal
       projects: "proyectos",
       noProjectsCategory: "No hay proyectos en esta categoría",
@@ -410,7 +404,7 @@ export const translations = {
       eliteProjects: "Proyectos Elite",
       clickToSeeList: "Click para ver lista",
       clickBarToSee: "Click en una barra para ver proyectos",
-      
+
       // KPI Cards
       deploymentRate: "Tasa de Despliegue",
       deploymentRateDesc: "Proyectos con Demo",
@@ -423,7 +417,7 @@ export const translations = {
       avgEffortDesc: "Score de Madurez",
       stackDominant: "Stack Dominante",
       stackDominantDesc: "Más usado (sin Gemini)",
-      
+
       // Charts
       categoryBreakdown: "Distribución por Categoría",
       categoryBreakdownDesc: "Inferido de descripción y keywords",
@@ -439,7 +433,7 @@ export const translations = {
       insightAccessibility: "Accesibilidad es un nicho con alto impacto y baja saturación.",
       analyzingProjects: "Analizando {count} proyectos..."
     },
-    
+
     // AI Lab extras
     aiLab: {
       nextStep: "Siguiente Paso",
@@ -467,7 +461,7 @@ export const translations = {
       langInstructionBuilder: "CRITICAL: YOU MUST RESPOND EXCLUSIVELY IN SPANISH (ESPAÑOL). Do NOT generate any Master Prompt or deployment prompt in this step.",
       // Builder step descriptions
       // Builder step descriptions - Informative about what each step does
-      stepDescPlatform: "Cada plataforma tiene fortalezas distintas. v0 para UIs rápidas, Lovable para full-stack, AI Studio para apps de IA.",
+      stepDescPlatform: "Elige tu plataforma según tu stack ideal: v0 para apps Next.js con deploy instantáneo, Lovable para MVPs full-stack con Supabase pre-configurado, o AI Studio para prototipos centrados en IA multimodal.",
       stepDescIdea: "Describe tu concepto o deja que la IA encuentre brechas en el dataset. Enter para refinar tu idea.",
       stepDescValidation: "La IA analiza encaje de mercado, competencia de los 320 proyectos, y riesgos técnicos para tu plataforma.",
       stepDescPRD: "Genera un Documento de Requisitos: funcionalidades, flujos de usuario, y puntos de integración con IA.",
