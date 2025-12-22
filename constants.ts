@@ -8,7 +8,7 @@ import { Project } from './types';
 // OPCIÓN 1: URL EXTERNA (RECOMENDADO)
 // Pega aquí el enlace directo a tu archivo CSV (Raw GitHub, S3, etc.)
 // Ejemplo: "https://raw.githubusercontent.com/usuario/repo/main/data.csv"
-export const DATASET_URL: string = "https://raw.githubusercontent.com/Atypical-Playworks/protoi/main/data/datos.csv"; 
+export const DATASET_URL: string = "https://raw.githubusercontent.com/Atypical-Playworks/protoi/main/data/datos.csv";
 
 // OPCIÓN 2: DATA HARDCODED (RESPALDO)
 // Si la URL falla o está vacía, se usará esto.
@@ -80,4 +80,63 @@ CRITICAL INSTRUCTION: Be extremely concise. High signal-to-noise ratio.
 Do not waste tokens on pleasantries.
 If asked a specific question, answer ONLY that question.
 Use markdown bullet points for lists.
-Adopt a "Cyberpunk Corporate" tone: efficient, direct, data-driven.`;
+Adopt a tone: efficient, direct, data-driven.`;
+
+export const UI_GENERATION_SYSTEM_INSTRUCTION = `You are an expert UI/UX Frontend Engineer specializing in Flash UI design.
+CRITICAL INSTRUCTION: Your ONLY source of truth is the provided PRD.
+Do NOT invent features not listed in the PRD. 
+Adhere strictly to modern design principles, accessibility standards, and the specific visual direction provided in the prompt.`;
+
+export const UI_PROMPTS = {
+  STYLE_GENERATION: `You are a master UI/UX designer. Generate ONE highly evocative design direction for:
+
+**APP CONCEPT:**
+{{IDEA}}
+
+**KEY FEATURES:**
+{{PRD}}
+
+**STRICT IP SAFEGUARD:**
+No names of artists. 
+Instead, describe the *Physicality* and *Material Logic* of the UI.
+
+**CREATIVE GUIDANCE (Use these as EXAMPLES of how to describe style, but INVENT YOUR OWN):**
+1. Example: "Asymmetrical Primary Grid" (Heavy black strokes, rectilinear structure, flat primary pigments, high-contrast white space).
+2. Example: "Suspended Kinetic Mobile" (Delicate wire-thin connections, floating organic primary shapes, slow-motion balance, white-void background).
+3. Example: "Grainy Risograph Press" (Overprinted translucent inks, dithered grain textures, monochromatic color depth, raw paper substrate).
+4. Example: "Volumetric Spectral Fluid" (Generative morphing gradients, soft-focus diffusion, bioluminescent light sources, spectral chromatic aberration).
+
+**YOUR TASK:**
+- Invent a unique design persona name based on a NEW physical metaphor.
+- The name must be evocative (e.g. "Tactile Risograph Press").
+
+**GOAL:**
+Return ONLY the design persona name. Nothing else.`,
+
+  COMPONENT_GENERATION: `You are Flash UI. Create a stunning, high-fidelity UI mockup for:
+
+**APP CONCEPT:**
+{{IDEA}}
+
+**KEY FEATURES (from PRD):**
+{{PRD}}
+
+**CONCEPTUAL DIRECTION: {{STYLE_NAME}}**
+
+**DESIGN SEED:** {{DESIGN_SEED}}
+
+**LANGUAGE REQUIREMENT:**
+All text content must be in {{LANGUAGE}}.
+
+**VISUAL EXECUTION RULES:**
+1. **Materiality**: Use the specified metaphor to drive every CSS choice. (e.g. if Risograph, use \`feTurbulence\` for grain and \`mix-blend-mode: multiply\` for ink layering).
+2. **Typography**: Use high-quality web fonts. Pair a bold sans-serif with a refined monospace for data.
+3. **Motion**: Include subtle, high-performance CSS/JS animations (hover transitions, entry reveals).
+4. **IP SAFEGUARD**: No artist names or trademarks. 
+5. **Layout**: Be bold with negative space and hierarchy. Avoid generic cards. Use the DESIGN SEED ({{DESIGN_SEED}}) to varying the grid structure and component arrangement significantly.
+6. **Completeness**: Show a realistic main screen with placeholder data. The layout should reflect the flows implied by the PRD.
+
+Return ONLY RAW HTML starting with <!DOCTYPE html>. Include all CSS in <style> tags. No markdown fences.`
+};
+
+

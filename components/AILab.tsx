@@ -13,6 +13,7 @@ import {
   Maximize2, Minimize2, Eye, RefreshCw
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { SYSTEM_INSTRUCTION, UI_GENERATION_SYSTEM_INSTRUCTION, UI_PROMPTS } from "../constants";
 
 // Model Selection
 const FAST_MODEL = 'gemini-3-flash-preview';
@@ -128,7 +129,6 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
   const [previewViewMode, setPreviewViewMode] = useState<'code' | 'preview'>('preview'); // Switch para Code/Preview
   const [streamingContent, setStreamingContent] = useState<string>(''); // For streaming responses
-  const [previewTypewriterText, setPreviewTypewriterText] = useState<string>(''); // For typewriter effect in preview
 
   // --- AUDIO STATE ---
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
@@ -579,7 +579,7 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
     } else if (step === 'prompt') {
       // MASTER PROMPT IS ALWAYS IN ENGLISH FOR THE TOOLS
       // Always include UI Preview code if available
-      const uiPreviewCode = pipeline.uiPreview 
+      const uiPreviewCode = pipeline.uiPreview
         ? `\n\nUI PREVIEW CODE (Use this as design reference - MUST be included in the final prompt):\n\`\`\`html\n${pipeline.uiPreview}\n\`\`\``
         : '';
 
@@ -598,7 +598,7 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
         1. Set the role (Senior Engineer).
         2. Describe the app goal and user flow clearly.
         3. List key features from the PRD.
-        4. ${pipeline.uiPreview ? `CRITICAL: The UI Preview code provided above MUST be included in the final prompt. Tell ${platformInfo.title} to use it as the exact design reference for visual style, colors, layout, and components. The HTML/CSS code should be part of the prompt so ${platformInfo.title} can reference it directly.` : 'Use modern, clean design principles.'}
+        ${pipeline.uiPreview ? `CRITICAL: I have already generated the UI code. Do NOT regenerate it. Instead, in your output, just write exactly "{{UI_CODE_PLACEHOLDER}}" where the code should go. I will strip it in later.` : 'Use modern, clean design principles.'}
         5. Explicitly tell ${platformInfo.title} to make technical choices (stack, styling) based on its own best practices.
         6. Emphasize "Speed to Demo" and "Robustness".
         
@@ -607,7 +607,7 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
         
         \`\`\`text
         [The full prompt goes here...]
-        ${pipeline.uiPreview ? '\n\n--- Include the UI Preview HTML/CSS code in the prompt above ---' : ''}
+        ${pipeline.uiPreview ? '\n\n{{UI_CODE_PLACEHOLDER}}' : ''}
         \`\`\`
         
         **Next Steps:**
@@ -685,67 +685,40 @@ export const AILab: React.FC<AILabProps> = ({ projects, extraContext = [] }) => 
     }
   };
 
+  // Auto-scroll logic
+  const codeTerminalRef = useRef<HTMLPreElement>(null);
+
+  useEffect(() => {
+    if (isGeneratingPreview && codeTerminalRef.current) {
+      codeTerminalRef.current.scrollTop = codeTerminalRef.current.scrollHeight;
+    }
+  }, [isGeneratingPreview, pipeline.uiPreview]);
+
   // Generate UI Preview using Flash UI style prompts
   const generateUIPreview = async () => {
     if (!pipeline.prd || isGeneratingPreview) return;
 
     setIsGeneratingPreview(true);
     setPipeline(prev => ({ ...prev, uiPreview: null }));
-    setPreviewTypewriterText(''); // Reset typewriter text
 
     try {
       // Step 1: Generate a creative design direction (Flash UI style)
-      const stylePrompt = `
-Generate ONE highly evocative design direction for this hackathon app concept:
+      const stylePrompt = UI_PROMPTS.STYLE_GENERATION
+        .replace('{{IDEA}}', pipeline.idea)
+        .replace('{{PRD}}', pipeline.prd);
 
-**APP CONCEPT:**
-${pipeline.idea}
-
-**KEY FEATURES:**
-${pipeline.prd}
-
-**STRICT IP SAFEGUARD:**
-Never use artist or brand names. Use physical and material metaphors.
-
-**CREATIVE EXAMPLES (Do not copy these, use them as tone guide):**
-- "Asymmetrical Rectilinear Blockwork" (Grid-heavy, primary pigments, thick structural strokes).
-- "Grainy Risograph Layering" (Tactile paper texture, overprinted translucent inks).
-- "Kinetic Wireframe Suspension" (Floating silhouettes, thin balancing lines).
-- "Spectral Prismatic Diffusion" (Glassmorphism, caustic refraction, morphing gradients).
-
-**GOAL:**
-Return ONLY one creative style name (e.g. "Tactile Risograph Press"). Just the name, nothing else.
-      `.trim();
-
-      const styleResponse = await geminiService.generateContent(stylePrompt, 'gemini-3-flash-preview');
+      const styleResponse = await geminiService.generateContent(stylePrompt, 'gemini-3-flash-preview', UI_GENERATION_SYSTEM_INSTRUCTION);
       const styleName = styleResponse.trim().replace(/['"]/g, '');
+      const designSeed = Math.floor(Math.random() * 100000);
 
       // Step 2: Generate HTML using Flash UI prompt style
       const userLanguage = language === 'es' ? 'Spanish' : 'English';
-      const htmlPrompt = `
-You are Flash UI. Create a stunning, high-fidelity UI mockup for this hackathon app.
-
-**APP CONCEPT:**
-${pipeline.idea}
-
-**KEY FEATURES (from PRD):**
-${pipeline.prd}
-
-**CONCEPTUAL DIRECTION: ${styleName}**
-
-**LANGUAGE REQUIREMENT:**
-All text content, labels, buttons, and user interface elements must be in ${userLanguage}. Use appropriate ${userLanguage} terminology and phrasing.
-
-**VISUAL EXECUTION RULES:**
-1. **Materiality**: Use the specified metaphor to drive every CSS choice. (e.g. if Risograph, use \`feTurbulence\` for grain and \`mix-blend-mode: multiply\` for ink layering).
-2. **Typography**: Use Google Fonts (import them). Pair a bold sans-serif with a refined monospace for data.
-3. **Motion**: Include subtle, high-performance CSS animations (hover transitions, entry reveals).
-4. **IP SAFEGUARD**: No artist names or trademarks. 
-5. **Layout**: Be bold with negative space and hierarchy. Avoid generic cards.
-6. **Completeness**: Show a realistic main screen with placeholder data that makes sense for the app concept.
-
-Return ONLY RAW HTML starting with <!DOCTYPE html>. Include all CSS in <style> tags. No markdown fences.
-      `.trim();
+      const htmlPrompt = UI_PROMPTS.COMPONENT_GENERATION
+        .replace('{{IDEA}}', pipeline.idea)
+        .replace('{{PRD}}', pipeline.prd)
+        .replace('{{STYLE_NAME}}', styleName)
+        .replace('{{DESIGN_SEED}}', designSeed.toString())
+        .replaceAll('{{LANGUAGE}}', userLanguage);
 
       let accumulatedHtml = '';
       const result = await geminiService.generateContentStream(
@@ -754,25 +727,9 @@ Return ONLY RAW HTML starting with <!DOCTYPE html>. Include all CSS in <style> t
           // Acumulador como en Flash UI
           accumulatedHtml += chunkText;
           setPipeline(prev => ({ ...prev, uiPreview: accumulatedHtml }));
-
-          // Typewriter effect for the preview overlay
-          const currentText = previewTypewriterText;
-          const newText = accumulatedHtml;
-          const charsToAdd = newText.slice(currentText.length);
-
-          if (charsToAdd.length > 0) {
-            let charIndex = 0;
-            const typeChar = () => {
-              if (charIndex < charsToAdd.length) {
-                setPreviewTypewriterText(currentText + charsToAdd.slice(0, charIndex + 1));
-                charIndex++;
-                setTimeout(typeChar, 10); // 10ms delay between characters
-              }
-            };
-            typeChar();
-          }
         },
-        'gemini-3-flash-preview'
+        'gemini-3-flash-preview',
+        UI_GENERATION_SYSTEM_INSTRUCTION
       );
 
       // Final cleanup
@@ -782,7 +739,6 @@ Return ONLY RAW HTML starting with <!DOCTYPE html>. Include all CSS in <style> t
       if (finalHtml.endsWith('```')) finalHtml = finalHtml.substring(0, finalHtml.length - 3).trimEnd();
 
       setPipeline(prev => ({ ...prev, uiPreview: finalHtml }));
-      setPreviewTypewriterText(finalHtml); // Set final text
 
       // Guardar el preview en localStorage para persistencia
       localStorage.setItem('protoi_ui_preview', finalHtml);
@@ -793,7 +749,6 @@ Return ONLY RAW HTML starting with <!DOCTYPE html>. Include all CSS in <style> t
         ...prev,
         uiPreview: errorHtml
       }));
-      setPreviewTypewriterText(errorHtml);
     } finally {
       setIsGeneratingPreview(false);
     }
@@ -808,7 +763,15 @@ Return ONLY RAW HTML starting with <!DOCTYPE html>. Include all CSS in <style> t
     localStorage.removeItem('protoi_ui_preview');
   };
 
+  // Export pipeline state to a Markdown file
   const exportPipeline = () => {
+    const codeContent = pipeline.uiPreview
+      ? `\n\n\`\`\`html\n${pipeline.uiPreview}\n\`\`\``
+      : 'Not generated yet';
+
+    // Replace placeholder in master prompt for export
+    const finalMasterPrompt = (pipeline.masterPrompt || '').replace('{{UI_CODE_PLACEHOLDER}}', codeContent);
+
     const content = `# Hackathon Builder Pipeline
 Platform: ${pipeline.platform}
 Date: ${new Date().toLocaleString()}
@@ -823,10 +786,10 @@ ${pipeline.validation}
 ${pipeline.prd}
 
 ## 4. UI PREVIEW CODE
-${pipeline.uiPreview || 'Not generated yet'}
+${codeContent}
 
 ## 5. MASTER PROMPT
-${pipeline.masterPrompt}
+${finalMasterPrompt}
 `;
     const blob = new Blob([content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
@@ -851,11 +814,11 @@ ${pipeline.masterPrompt}
 
     const content = mode === 'explorer'
       ? chatMessages[chatMessages.length - 1]?.content
-      : (builderStep === 1 ? pipeline.idea 
-          : builderStep === 2 ? pipeline.validation 
-          : builderStep === 3 ? pipeline.prd 
-          : builderStep === 4 ? (pipeline.uiPreview || 'UI Preview code is being generated...')
-          : pipeline.masterPrompt);
+      : (builderStep === 1 ? pipeline.idea
+        : builderStep === 2 ? pipeline.validation
+          : builderStep === 3 ? pipeline.prd
+            : builderStep === 4 ? (pipeline.uiPreview || 'UI Preview code is being generated...')
+              : pipeline.masterPrompt);
 
     if (!content) return;
 
@@ -885,7 +848,13 @@ ${pipeline.masterPrompt}
     const content = pipeline.masterPrompt || '';
     // Try to extract content inside code block if exists
     const codeMatch = content.match(/```text\n([\s\S]*?)\n```/);
-    const textToCopy = codeMatch ? codeMatch[1] : content;
+    let textToCopy = codeMatch ? codeMatch[1] : content;
+
+    // Replace placeholder with actual code
+    if (pipeline.uiPreview) {
+      const fullCodeBlock = `\n\nUI REFERENCE CODE:\n\`\`\`html\n${pipeline.uiPreview}\n\`\`\``;
+      textToCopy = textToCopy.replace('{{UI_CODE_PLACEHOLDER}}', fullCodeBlock);
+    }
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
@@ -933,7 +902,10 @@ ${pipeline.masterPrompt}
             <span>{aiLabLabels.data}</span>
           </button>
           <button
-            onClick={() => setMode('builder')}
+            onClick={() => {
+              setMode('builder');
+              resetPipeline();
+            }}
             className={`flex-1 py-1.5 md:py-2 font-mono font-bold uppercase text-[9px] md:text-[10px] tracking-wider transition-all flex items-center justify-center gap-1 md:gap-1.5 whitespace-nowrap ${mode === 'builder'
               ? 'bg-yellow-400 text-black'
               : 'text-gray-400 hover:text-white'
@@ -1229,9 +1201,30 @@ ${pipeline.masterPrompt}
                 </div>
               )}
 
-              {/* Step 4: Preview UI - Only continue button */}
+              {/* Step 4: Preview UI - Regenerate and continue buttons */}
               {builderStep === 4 && pipeline.uiPreview && !isGeneratingPreview && (
                 <div className="space-y-2 animate-slide-up">
+                  <button
+                    onClick={() => {
+                      // Cuando se regenera, forzamos CODE como modo activo
+                      setPreviewViewMode('code');
+                      generateUIPreview();
+                    }}
+                    disabled={isGeneratingPreview || !pipeline.prd}
+                    className="w-full py-2 border border-yellow-400 text-yellow-400 font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-yellow-400/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isGeneratingPreview ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        {aiLabLabels.generatingPreview}
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-3 h-3" />
+                        {aiLabLabels.regeneratePreview}
+                      </>
+                    )}
+                  </button>
                   <button
                     onClick={() => advanceAndGenerate(5, 'prompt')}
                     className="w-full py-2 bg-green-500 text-black font-mono font-bold text-[10px] uppercase flex items-center justify-center gap-2 hover:bg-green-400 transition-colors"
@@ -1397,17 +1390,24 @@ ${pipeline.masterPrompt}
                 {isGeneratingAudio ? <Loader2 className="w-4 h-4 animate-spin" /> : isPlaying ? <StopCircle className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
               {/* Preview UI View Mode Switch - Only in step 4 */}
-              {builderStep === 4 && pipeline.uiPreview && (
+              {builderStep === 4 && (
                 <div className="flex items-center gap-2 border border-basalt-700">
                   <button
                     onClick={() => setPreviewViewMode('code')}
-                    className={`px-2 py-1 text-[9px] font-mono font-bold transition-all ${previewViewMode === 'code' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'}`}
+                    className={`px-2 py-1 text-[9px] font-mono font-bold transition-all ${previewViewMode === 'code' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'
+                      }`}
                   >
                     CODE
                   </button>
                   <button
-                    onClick={() => setPreviewViewMode('preview')}
-                    className={`px-2 py-1 text-[9px] font-mono font-bold transition-all ${previewViewMode === 'preview' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'}`}
+                    onClick={() => !isGeneratingPreview && pipeline.uiPreview && setPreviewViewMode('preview')}
+                    disabled={isGeneratingPreview || !pipeline.uiPreview}
+                    className={`px-2 py-1 text-[9px] font-mono font-bold transition-all ${isGeneratingPreview || !pipeline.uiPreview
+                      ? 'text-gray-600 cursor-not-allowed'
+                      : previewViewMode === 'preview'
+                        ? 'bg-yellow-400 text-black'
+                        : 'text-gray-400 hover:text-white'
+                      }`}
                   >
                     PREVIEW
                   </button>
@@ -1423,9 +1423,8 @@ ${pipeline.masterPrompt}
           </div>
 
           {/* Terminal Content */}
-          <div className={`flex-1 min-h-0 font-mono text-xs md:text-sm relative terminal-glow custom-scrollbar ${
-            builderStep === 4 && pipeline.uiPreview ? 'flex flex-col' : 'p-3 md:p-6 overflow-y-auto'
-          }`}>
+          <div className={`flex-1 min-h-0 font-mono text-xs md:text-sm relative terminal-glow custom-scrollbar ${builderStep === 4 && pipeline.uiPreview ? 'flex flex-col' : 'p-3 md:p-6 overflow-y-auto'
+            }`}>
             {/* Show loading only for Chat mode without any messages yet */}
             {(isChatLoading && mode === 'explorer' && chatMessages.length === 0) ? (
               // Initial loading state for Chat
@@ -1520,32 +1519,30 @@ ${pipeline.masterPrompt}
                     // Preview UI Step - Show Code or Preview based on view mode
                     <>
                       <div className="px-3 md:px-6 pt-3 md:pt-6 flex-shrink-0">
-                        <div className="text-green-400 mb-2">&gt; UI_PREVIEW_GENERATED</div>
+                        <div className="text-green-400 mb-1">&gt; UI_PREVIEW_GENERATED{isGeneratingPreview && ' (streaming...)'}</div>
                         <div className="text-gray-500 mb-2">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: 4/6</div>
                       </div>
-                      {isGeneratingPreview ? (
-                        <div className="flex-1 min-h-0 relative px-3 md:px-6 pb-3 md:pb-6">
-                          <div className="generating-overlay h-full">
-                            <pre className="code-stream-preview h-full">
-                              {previewTypewriterText}
-                            </pre>
-                          </div>
-                        </div>
-                      ) : previewViewMode === 'code' ? (
+                      {/* When generating, always show code source in streaming */}
+                      {isGeneratingPreview || previewViewMode === 'code' ? (
                         <div className="flex-1 min-h-0 overflow-auto px-3 md:px-6 pb-3 md:pb-6 relative">
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(pipeline.uiPreview || '');
-                              setCopied(true);
-                              setTimeout(() => setCopied(false), 2000);
-                            }}
-                            className="absolute top-4 right-4 z-10 bg-basalt-800/90 border border-basalt-700 text-white p-2 hover:bg-basalt-700 transition-all flex items-center gap-2"
-                            title="Copy Code"
+                          {!isGeneratingPreview && (
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(pipeline.uiPreview || '');
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                              }}
+                              className="absolute top-4 right-4 z-10 bg-basalt-800/90 border border-basalt-700 text-white p-2 hover:bg-basalt-700 transition-all flex items-center gap-2"
+                              title="Copy Code"
+                            >
+                              {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                            </button>
+                          )}
+                          <pre
+                            ref={codeTerminalRef}
+                            className="bg-basalt-800/50 p-4 text-xs text-green-300 border border-basalt-700 whitespace-pre-wrap font-mono overflow-x-auto h-full"
                           >
-                            {copied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                          </button>
-                          <pre className="bg-basalt-800/50 p-4 text-xs text-green-300 border border-basalt-700 whitespace-pre-wrap font-mono overflow-x-auto h-full">
-                            {pipeline.uiPreview}
+                            {pipeline.uiPreview || (isGeneratingPreview ? 'Generating code...' : '')}
                           </pre>
                         </div>
                       ) : (
@@ -1557,14 +1554,25 @@ ${pipeline.masterPrompt}
                           >
                             <Maximize2 className="w-4 h-4" />
                           </button>
-                          <div className="h-full w-full border border-basalt-700 rounded overflow-hidden">
-                            <iframe
-                              srcDoc={pipeline.uiPreview}
-                              title="UI Preview"
-                              className="w-full h-full bg-white"
-                              sandbox="allow-scripts allow-forms allow-modals allow-popups allow-presentation allow-same-origin"
-                            />
-                          </div>
+                          {/* Only render iframe when HTML is complete and valid */}
+                          {pipeline.uiPreview && pipeline.uiPreview.length > 100 && !isGeneratingPreview ? (
+                            <div className="h-full w-full border border-basalt-700 rounded overflow-hidden">
+                              <iframe
+                                key={pipeline.uiPreview} // Force re-render when content changes
+                                srcDoc={pipeline.uiPreview}
+                                title="UI Preview"
+                                className="w-full h-full bg-white"
+                                sandbox="allow-scripts allow-forms allow-modals allow-popups allow-presentation allow-same-origin"
+                              />
+                            </div>
+                          ) : (
+                            <div className="h-full w-full border border-basalt-700 rounded flex items-center justify-center bg-basalt-800/50">
+                              <div className="text-center">
+                                <Loader2 className="w-8 h-8 text-yellow-400 animate-spin mx-auto mb-2" />
+                                <p className="text-gray-400 font-mono text-xs">Generating preview...</p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </>
@@ -1646,17 +1654,24 @@ ${pipeline.masterPrompt}
               </div>
               <div className="flex items-center gap-3">
                 {/* Preview UI View Mode Switch - Only in step 4 */}
-                {builderStep === 4 && pipeline.uiPreview && (
+                {builderStep === 4 && (
                   <div className="flex items-center gap-2 border border-basalt-700">
                     <button
                       onClick={() => setPreviewViewMode('code')}
-                      className={`px-3 py-1 text-xs font-mono font-bold transition-all ${previewViewMode === 'code' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'}`}
+                      className={`px-3 py-1 text-xs font-mono font-bold transition-all ${previewViewMode === 'code' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'
+                        }`}
                     >
                       CODE
                     </button>
                     <button
-                      onClick={() => setPreviewViewMode('preview')}
-                      className={`px-3 py-1 text-xs font-mono font-bold transition-all ${previewViewMode === 'preview' ? 'bg-yellow-400 text-black' : 'text-gray-400 hover:text-white'}`}
+                      onClick={() => !isGeneratingPreview && pipeline.uiPreview && setPreviewViewMode('preview')}
+                      disabled={isGeneratingPreview || !pipeline.uiPreview}
+                      className={`px-3 py-1 text-xs font-mono font-bold transition-all ${isGeneratingPreview || !pipeline.uiPreview
+                        ? 'text-gray-600 cursor-not-allowed'
+                        : previewViewMode === 'preview'
+                          ? 'bg-yellow-400 text-black'
+                          : 'text-gray-400 hover:text-white'
+                        }`}
                     >
                       PREVIEW
                     </button>
@@ -1685,9 +1700,8 @@ ${pipeline.masterPrompt}
             </div>
 
             {/* Modal Content - Full conversation */}
-            <div className={`flex-1 min-h-0 font-mono text-sm terminal-glow custom-scrollbar ${
-              builderStep === 4 && pipeline.uiPreview ? 'flex flex-col' : 'p-4 md:p-6 overflow-y-auto'
-            }`}>
+            <div className={`flex-1 min-h-0 font-mono text-sm terminal-glow custom-scrollbar ${builderStep === 4 && pipeline.uiPreview ? 'flex flex-col' : 'p-4 md:p-6 overflow-y-auto'
+              }`}>
               {isGenerating || (isChatLoading && mode === 'explorer') ? (
                 <div className="flex flex-col items-center justify-center h-full space-y-4">
                   <Loader2 className="w-12 h-12 text-green-400 animate-spin" />
@@ -1731,7 +1745,7 @@ ${pipeline.masterPrompt}
                     builderStep === 4 && pipeline.uiPreview ? (
                       <>
                         <div className="px-4 md:px-6 pt-4 md:pt-6 flex-shrink-0">
-                          <div className="text-green-400 mb-2 text-lg">&gt; UI_PREVIEW_GENERATED</div>
+                          <div className="text-green-400 mb-2 text-lg">&gt; UI_PREVIEW_GENERATED{isGeneratingPreview && ' (streaming...)'}</div>
                           <div className="text-gray-500 mb-2">[SYSTEM] Platform: {pipeline.platform?.toUpperCase()} | Step: 4/6</div>
                         </div>
                         {previewViewMode === 'code' ? (

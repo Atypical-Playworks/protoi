@@ -13,13 +13,13 @@ export class GeminiService {
     return true;
   }
 
-  async generateContent(prompt: string, modelId: string = 'gemini-3-flash-preview'): Promise<string> {
+  async generateContent(prompt: string, modelId: string = 'gemini-3-flash-preview', systemInstruction?: string): Promise<string> {
     try {
       const response = await this.ai.models.generateContent({
         model: modelId,
         contents: prompt,
         config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
+          systemInstruction: systemInstruction || SYSTEM_INSTRUCTION,
         },
       });
 
@@ -34,14 +34,15 @@ export class GeminiService {
   async generateContentStream(
     prompt: string,
     onChunk: (text: string) => void,
-    modelId: string = 'gemini-3-flash-preview'
+    modelId: string = 'gemini-3-flash-preview',
+    systemInstruction?: string
   ): Promise<string> {
     try {
       const response = await this.ai.models.generateContentStream({
         model: modelId,
         contents: prompt,
         config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
+          systemInstruction: systemInstruction || SYSTEM_INSTRUCTION,
         },
       });
 
@@ -65,7 +66,7 @@ export class GeminiService {
     try {
       // Clean markdown symbols for better speech
       const cleanText = text.replace(/[*#_`]/g, '').trim();
-      
+
       const response = await this.ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: cleanText }] }],
@@ -73,9 +74,9 @@ export class GeminiService {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { 
+              prebuiltVoiceConfig: {
                 // Use 'Kore' (calm/neutral) for English, works reasonably well for generic outputs
-                voiceName: 'Kore' 
+                voiceName: 'Kore'
               },
             },
           },
